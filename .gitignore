@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# KDE
+.directory
+
+# pycharm
+.idea/

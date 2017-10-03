@@ -7,7 +7,6 @@ import services.email as email_service
 from commands import load_dispatcher
 from utils.email import email_check, init_2
 
-Bot_2 = None
 
 @click.command()
 @click.option('--log_level', default="INFO", help='Level to log. [INFO, DEBUG]')
@@ -35,7 +34,7 @@ def init(log_level, token, refresh_inbox, db_path):
     # Start the Bot
     updater.start_polling()
     logging.error("Bot started")
-    init_2(updater.bot)
+    email_service.init_2(updater.bot)
 
     # Run the bot until the user presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT

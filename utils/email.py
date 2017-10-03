@@ -33,7 +33,6 @@ def init_2(bot):
     email_check()
 
 
-
 def email_check():
 #    global SMTP_SERVER, SMTP_SERVER_PORT, FROM_EMAIL, FROM_PWD
     Config = configparser.ConfigParser()
@@ -43,11 +42,12 @@ def email_check():
     FROM_EMAIL = Config.get("email test", "FROM_EMAIL")
     FROM_PWD = Config.get("email test", "FROM_PWD")
 
-    if FROM_EMAIL in Emails:
+    if FROM_EMAIL in Emails and Emails[FROM_EMAIL].check_alive():
         email = Emails[FROM_EMAIL]
     else:
         email = Email(SMTP_SERVER, SMTP_SERVER_PORT, FROM_EMAIL, FROM_PWD)
         Emails[FROM_EMAIL] = email
+
     email.read_email_from_gmail()
     scheduler.enter(refresh_inbox, 1, email_check)
     scheduler.run()
@@ -82,19 +82,19 @@ class Email:
         self.__password = password
         if last_message_time is None:
             timezone = pytz.timezone('Europe/Madrid')
-    #        self.__lastScan = datetime.datetime.now(timezone) - datetime.timedelta(days=2)
-            self.__lastScan = datetime.datetime.now(timezone) - datetime.timedelta(minutes=15)
+    #        self.lastScan = datetime.datetime.now(timezone) - datetime.timedelta(days=2)
+            self.lastScan = datetime.datetime.now(timezone) - datetime.timedelta(minutes=15)
         else:
-            self.__lastScan = last_message_time
+            self.lastScan = last_message_time
 
         self.mail = imaplib.IMAP4_SSL(self.__smtp_server, self.__smtp_port)
         self.mail.login(self.__email, self.__password)
-        self.mail.select('inbox')
 
     def read_email_from_gmail(self):
         logging.debug("Checking emails from account: " + self.__email)
         unread = []
         try:
+            self.mail.select('inbox')
             type, data = self.mail.search(None, 'ALL')
 #            type, data = mail.search(None, 'UnSeen')
             mail_ids = data[0]
@@ -106,7 +106,7 @@ class Email:
             for i in range(latest_email_id, first_email_id, -1):
                 msg = self.get_email(str(i))
                 msg_date = email.utils.parsedate_to_datetime(msg['date'])
-                if msg_date <= self.__lastScan:
+                if msg_date <= self.lastScan:
                     break
                 else:
                     unread.append(msg)
@@ -114,7 +114,7 @@ class Email:
 
             if len(unread) > 0:
                 logging.debug("There are " + str(len(unread)) + " news emails !")
-                self.__lastScan = email.utils.parsedate_to_datetime(unread[0]['date'])
+                self.lastScan = email.utils.parsedate_to_datetime(unread[0]['date'])
             else:
                 logging.debug("No news emails !")
 
@@ -145,3 +145,11 @@ class Email:
                 email_from = msg['from']
                 print('From : ' + email_from + '')
                 print('Subject : ' + email_subject + '\n')
+
+    def check_alive(self):
+        try:
+            status = self.mail.noop()[0]
+            logging.debug("Connection status: " + str(status))
+        except:  # smtplib.SMTPServerDisconnected
+            status = -1
+        return True if status == "OK" else False

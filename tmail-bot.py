@@ -25,6 +25,8 @@ def init(log_level, token, refresh_inbox, db_path):
 
     logger.setLevel(logging.DEBUG)
 
+    logging.getLogger('telegram').setLevel(logging.INFO)
+
     # Create the Updater and pass it your bot's token.
     updater = Updater("token")
     load_dispatcher(updater.dispatcher)

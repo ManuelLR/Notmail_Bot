@@ -70,8 +70,9 @@ def send_telegram(msg):
         email_subject = str(email_subject_)
 
     logging.error(id_user)
-    Bot_2.send_message(chat_id=id_user, parse_mode="Markdown",
+    msg_send = Bot_2.send_message(chat_id=id_user, parse_mode="Markdown",
                        text="*"+email_subject + "*\n[" + email_from + "]\n(_" + str(email_date)+"_)")
+    return msg_send is not None
 
 
 class Email:
@@ -153,3 +154,10 @@ class Email:
         except:  # smtplib.SMTPServerDisconnected
             status = -1
         return True if status == "OK" else False
+
+
+def connect(smtp_server, smtp_port, email, password):
+    mail = imaplib.IMAP4_SSL(smtp_server, smtp_port)
+    mail.login(email, password)
+    return mail
+

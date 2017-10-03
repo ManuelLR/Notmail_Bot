@@ -1,6 +1,6 @@
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
-from Commands.generic import start, help, error, button
+from commands.generic import start, help, error, button
 
 
 def load_dispatcher(dispatcher):

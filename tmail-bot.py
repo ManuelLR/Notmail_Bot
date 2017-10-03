@@ -2,8 +2,9 @@ import logging
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 import click  # http://click.pocoo.org/6/
+import services.email as email_service
 
-from Commands import load_dispatcher
+from commands import load_dispatcher
 from utils.email import email_check, init_2
 
 Bot_2 = None

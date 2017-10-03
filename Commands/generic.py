@@ -10,6 +10,7 @@ def start(bot, update):
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     update.message.reply_text('Please choose:', reply_markup=reply_markup)
+    logging.debug(update.message.chat_id)
 
 
 def help(bot, update):

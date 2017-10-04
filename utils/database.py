@@ -3,7 +3,7 @@ from tinydb import TinyDB, Query
 class DBC:
     def __init__(self, path=None):
         if path is None:
-            self.__db = TinyDB('config' + '/' + 'tmail-bot.json')
+            self.__db = TinyDB('../'+ 'config' + '/' + 'tmail-bot.json')
         else:
             self.__db = TinyDB(path)
 
@@ -19,17 +19,15 @@ class DBC:
         SMTPServers = self.__db.table('SMTPServers')
         query = Query()
         search = SMTPServers.search(query.name == name)
-        result = eval(str(search))
+        result = eval(str(search))[0] #We suposse that names will be unique
         smtpServer = SMTPServer(name, result['host'], result['port'])
         return smtpServer
 
     def updateSMTPServer(self, smtpServer):
         SMTPServers = self.__db.table('SMTPServers')
         query = Query()
-        search = SMTPServers.search({'host':smtpServer.host,'port':smtpServer.port}, query.name == smtpServer.name)
-        result = eval(str(search))
-        smtpServer = SMTPServer(result['name'], result['host'], result['port'])
-        return smtpServer
+        SMTPServers.update({'host':smtpServer.getHost(),'port':smtpServer.getPort()},
+                                    query.name == smtpServer.getName())
 
     def removeSMTPServer(self, name):
         SMTPServers = self.__db.table('SMTPServers')

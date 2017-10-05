@@ -1,9 +1,11 @@
 from tinydb import TinyDB, Query
+import os
+
 
 class DBC:
     def __init__(self, path=None):
         if path is None:
-            self.__db = TinyDB('../'+ 'config' + '/' + 'tmail-bot.json')
+            self.__db = TinyDB(os.path.join('..', 'config', 'tmail-bot.json'))
         else:
             self.__db = TinyDB(path)
 
@@ -64,6 +66,7 @@ class DBC:
     def removeAccountOfUser(self, user, account):
         pass
 
+
 class SMTPServer:
     def __init__(self, name, host, port):
         self.__name = name
@@ -98,6 +101,7 @@ class User:
 
     def getAccounts(self):
         return self.__accounts
+
 
 class Account:
     def __init__(self, name, username, password, refresh_time=None):

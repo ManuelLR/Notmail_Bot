@@ -1,5 +1,25 @@
 from tinydb import TinyDB, Query
 
+def parseAccountsToJson(accounts):
+    json = []
+    account = {}
+    for acc in accounts:
+        account = {}
+        account['name'] = acc.getName()
+        account['username'] = acc.getUsername()
+        account['password'] = acc.getPassword()
+        account['refresh_time'] = acc.getRefresh_Time()
+        json.append(account)
+    return json
+
+def parseJsonToAccounts(accounts):
+    result = []
+    account = None
+    for acc in accounts:
+        account = Account(acc['name'],acc['username'],acc['password'],acc['refresh_time'])
+        result.append(account)
+    return result
+
 class DBC:
     def __init__(self, path=None):
         if path is None:
@@ -36,15 +56,15 @@ class DBC:
 
     def insertUser(self, id, accounts):
         Users = self.__db.table('Users')
-        Users.insert({'id': id, 'accounts':[accounts]})
-        return EmailServer(id, accounts)
+        Users.insert({'id': id, 'accounts':parseAccountsToJson(accounts)})
+        return User(id, accounts)
 
     def searchUser(self, id):
         Users = self.__db.table('Users')
         query = Query()
         search = Users.search(query.id == id)
-        result = eval(str(search))
-        user = User(id, result['accounts'])
+        result = eval(str(search))[0]
+        user = User(id, parseJsonToAccounts(result['accounts']))
         return user
 
     def removeUser(self, id):

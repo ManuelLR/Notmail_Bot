@@ -5,7 +5,6 @@ import click  # http://click.pocoo.org/6/
 import services.email as email_service
 
 from commands import load_dispatcher
-from utils.email import email_check, init_2
 
 
 @click.command()

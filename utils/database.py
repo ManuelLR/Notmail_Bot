@@ -12,34 +12,34 @@ class DBC:
     def getTable(self, tableName):
         return self.__db.table(tableName)
 
-    def insertSMTPServer(self, name, host, port):
-        SMTPServers = self.__db.table('SMTPServers')
-        SMTPServers.insert({'name':name,'host':host,'port':port})
-        return SMTPServer(name, host, port)
+    def insertEmailServer(self, name, host, port, protocol):
+        EmailServers = self.__db.table('EmailServers')
+        EmailServers.insert({'name':name,'host':host,'port':port,'protocol':protocol})
+        return EmailServer(name, host, port, protocol)
 
-    def searchSMTPServer(self, name):
-        SMTPServers = self.__db.table('SMTPServers')
+    def searchEmailServer(self, name, protocol):
+        EmailServers = self.__db.table('EmailServers')
         query = Query()
-        search = SMTPServers.search(query.name == name)
-        result = eval(str(search))[0] #We suposse that names will be unique
-        smtpServer = SMTPServer(name, result['host'], result['port'])
-        return smtpServer
+        search = EmailServers.search(query.name == name)
+        result = eval(str(search))[0] #We suposse that names + protocol will be unique
+        emailServer = EmailServer(name, result['host'], result['port'], result['protocol'])
+        return emailServer
 
-    def updateSMTPServer(self, smtpServer):
-        SMTPServers = self.__db.table('SMTPServers')
+    def updateEmailServer(self, EmailServer):
+        EmailServers = self.__db.table('EmailServers')
         query = Query()
-        SMTPServers.update({'host':smtpServer.getHost(),'port':smtpServer.getPort()},
-                                    query.name == smtpServer.getName())
+        EmailServers.update({'host':EmailServer.getHost(),'port':EmailServer.getPort()},
+                                    query.name == EmailServer.getName() and query.protocol == EmailServer.getProtocol())
 
-    def removeSMTPServer(self, name):
-        SMTPServers = self.__db.table('SMTPServers')
+    def removeEmailServer(self, name, protocol):
+        EmailServers = self.__db.table('EmailServers')
         query = Query()
-        SMTPServers.remove(query.name == name)
+        EmailServers.remove(query.name == name and query.protocol == protocol)
 
     def insertUser(self, id, accounts):
         Users = self.__db.table('Users')
         Users.insert({'id': id, 'accounts':[accounts]})
-        return SMTPServer(id, accounts)
+        return EmailServer(id, accounts)
 
     def searchUser(self, id):
         Users = self.__db.table('Users')
@@ -67,11 +67,12 @@ class DBC:
         pass
 
 
-class SMTPServer:
-    def __init__(self, name, host, port):
+class EmailServer:
+    def __init__(self, name, host, port, protocol):
         self.__name = name
         self.__host = host
         self.__port = port
+        self.__protocol = protocol
 
     def getName(self):
         return self.__name
@@ -90,6 +91,12 @@ class SMTPServer:
 
     def setPort(self, port):
         self.__port = port
+
+    def getProtocol(self):
+        return self.__protocol
+
+    def setProtocol(self, protocol):
+        self.__protocol = protocol
 
 class User:
     def __init__(self, id, accounts):

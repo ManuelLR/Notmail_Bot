@@ -1,18 +1,20 @@
 import configparser
 from tinydb import TinyDB, Query
-from utils.database import DBC, SMTPServer, User, Account
+from utils.database import DBC, EmailServer, User, Account
 
 #Test DATABASE utils
 
 db = DBC()
 
-#Test SMTPServer
+#Test EmailServer
 
-db.insertSMTPServer('Gmail','smtp.gmail.com',465)
-SMTPServer = db.searchSMTPServer('Gmail')
-print('['+SMTPServer.getName()+']\nHost: '+SMTPServer.getHost()+'\nPort: '+str(SMTPServer.getPort()))
-SMTPServer.setPort(468)
-db.updateSMTPServer(SMTPServer)
-SMTPServer = db.searchSMTPServer('Gmail')
-print('['+SMTPServer.getName()+']\nHost: '+SMTPServer.getHost()+'\nPort: '+str(SMTPServer.getPort()))
-db.removeSMTPServer('Gmail')
+db.insertEmailServer('Gmail','smtp.gmail.com',465,'SMTP')
+EmailServer = db.searchEmailServer('Gmail','SMTP')
+print('['+EmailServer.getName()+']\nHost: '+EmailServer.getHost()+'\nPort: '+str(EmailServer.getPort())+
+      '\nProtocol: '+EmailServer.getProtocol())
+EmailServer.setPort(468)
+db.updateEmailServer(EmailServer)
+EmailServer = db.searchEmailServer('Gmail','SMTP')
+print('['+EmailServer.getName()+']\nHost: '+EmailServer.getHost()+'\nPort: '+str(EmailServer.getPort())+
+      '\nProtocol: ' + EmailServer.getProtocol())
+db.removeEmailServer('Gmail','SMTP')

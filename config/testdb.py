@@ -1,10 +1,9 @@
-import configparser
-from tinydb import TinyDB, Query
-from utils.database import DBC, EmailServer, User, Account, parseAccountsToJson
+import os
+from utils.database import DBC, Account, parseAccountsToJson
 
 #Test DATABASE utils
 
-db = DBC()
+db = DBC(os.path.join('..','config', 'tmail-bot.json'))
 
 #Test EmailServer
 

@@ -1,6 +1,7 @@
 import logging
 from configparser import ConfigParser
 import os
+from utils.database import DBC
 
 refresh_inbox = 3 * 5
 
@@ -31,11 +32,23 @@ def get_all():
     # Retrieve configuration from config file
     config = ConfigParser()
     config.read(os.path.join('config', 'myconfig.ini'))
-    smtp_server = config['email test']['SMTP_SERVER']
-    smtp_server_port = config['email test']['SMTP_SERVER_PORT']
-    from_email = config['email test']['FROM_EMAIL']
-    from_pwd = config['email test']['FROM_PWD']
-    admin_id = config['Telegram']['ADMIN_ID']
+    # smtp_server = config['email test']['SMTP_SERVER']
+    # smtp_server_port = config['email test']['SMTP_SERVER_PORT']
+    # from_email = config['email test']['FROM_EMAIL']
+    # from_pwd = config['email test']['FROM_PWD']
+
+    # Retrieve configuration from Database (Do not forgot run "PopulateDatabase" first)
+    db = DBC()
+    emailServer = db.searchEmailServer('Test','SMTP')
+    smtp_server = emailServer.getHost()
+    smtp_server_port = emailServer.getPort()
+    user = db.searchUser(config['Telegram']['ADMIN_ID'])
+    from_email = user.getAccounts()[0].getUsername()
+    print(from_email)
+    from_pwd = user.getAccounts()[0].getPassword()
+    print(from_pwd)
+    admin_id = user.getId()
+
     u_content = UserContent()
     u_content.add_email(smtp_server, smtp_server_port, from_email, from_pwd)
     result = {

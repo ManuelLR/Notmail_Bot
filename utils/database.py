@@ -23,12 +23,15 @@ def parseJsonToAccounts(accounts):
 class DBC:
     def __init__(self, path=None):
         if path is None:
-            self.__db = TinyDB(os.path.join('..', 'config', 'tmail-bot.json'))
+            self.__db = TinyDB(os.path.join('config', 'tmail-bot.json'))
         else:
             self.__db = TinyDB(path)
 
     def getTable(self, tableName):
         return self.__db.table(tableName)
+
+    def purge(self):
+        self.__db.purge_tables()
 
     def insertEmailServer(self, name, host, port, protocol):
         EmailServers = self.__db.table('EmailServers')
@@ -176,7 +179,7 @@ class Account:
         self.__name = name
 
     def getUsername(self):
-        return self.__name
+        return self.__username
 
     def setUsername(self, username):
         self.__username = username

@@ -1,12 +1,9 @@
+from commands.email import send_msg
 import repository.emails as email_repo
 import utils.smtp as email_util
 import sched
 import time
 import logging
-import datetime
-import pytz
-import email
-from email.header import decode_header
 
 
 scheduler = sched.scheduler(time.time, time.sleep)
@@ -14,7 +11,6 @@ scheduler = sched.scheduler(time.time, time.sleep)
 # refresh_inbox = 3 * 60
 refresh_inbox = 3 * 5
 Bot_2 = None
-Emails = dict()
 
 
 def init_email_service(bot):
@@ -27,22 +23,28 @@ def init_email_service(bot):
 
     for user, u_content in email_repo_all.items():
         for email, m_content in u_content.messages.items():
-            Emails[email] = EmailServer(user, email)
-            Emails[email].check()
+            email_repo.add_email_server(email, EmailServer(user, email, {'inbox': None}))
+            email_repo.get_emails_servers()[email].check('inbox')
 
 
 class EmailServer:
-    def __init__(self, id_user, email, last_message_time=None):
+    def __init__(self, id_user, email, folder_last_message_uid):
         self.__user = id_user
         self.__email = email
-        if last_message_time is None:
-            timezone = pytz.timezone('Europe/Madrid')
-    #        self.lastScan = datetime.datetime.now(timezone) - datetime.timedelta(days=2)
-            self.lastScan = datetime.datetime.now(timezone) - datetime.timedelta(minutes=15)
-        else:
-            self.lastScan = last_message_time
 
         self.__connect()
+
+        self.folder_last_message_uid = dict()
+        for folder, uid in folder_last_message_uid.items():
+            if uid is not None:
+                self.folder_last_message_uid[folder] = uid
+                continue
+            uids, err = email_util.get_uid_list(self.mail, folder)
+            if err is not None:
+                logging.error("Error reading folder: " + str(err))
+                continue
+            # self.folder_last_message_uid[folder] = int(uids[-2])  # for debug
+            self.folder_last_message_uid[folder] = int(uids[-1])
 
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
@@ -50,30 +52,40 @@ class EmailServer:
         self.mail = email_util.connect(message_content.smtp_server, message_content.smtp_server_port,
                                message_content.from_email, message_content.from_pwd)
 
-    def check(self):
-        logging.debug("Checking account: " + self.__user)
+    def check(self, folder):
+        logging.debug("Checking account: " + self.__email + ":/" + folder)
         if not self.__check_alive():
             self.__connect()
 
-        self.read_email_from_gmail()
-        scheduler.enter(refresh_inbox, 1, self.check)
+        self.read_email_from_gmail(folder)
+        scheduler.enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
         scheduler.run()
 
-    def read_email_from_gmail(self):
-        self.lastScan, unread = email_util.read_emails(self.mail, 'inbox', self.lastScan)
+    def read_email_from_gmail(self, folder):
+        uids, err = email_util.get_uid_list(self.mail, 'inbox')
 
-        for m in unread:
-            send_telegram(m)
+        most_recent_uid = int(uids[-1])
 
-    def get_email(self, id):
+        if most_recent_uid == self.folder_last_message_uid[folder]:
+            return
+
+        uids_truncated = []
+        for uid in reversed(uids):
+            if int(uid) <= self.folder_last_message_uid[folder]:
+                break
+            uids_truncated.append(uid)
+
+        for uid in reversed(uids_truncated):
+            send_msg(Bot_2, self.__user, self.__email, folder, uid)
+        self.folder_last_message_uid[folder] = most_recent_uid
+
+    def __get_uid_list(self, folder):
+        return email_util.get_uid_list(self.mail, folder)
+
+    def get_email_by_uid(self, uid):
         if not self.__check_alive():
             self.__connect()
-        return email_util.get_email(self.mail, id)
-
-    def get_email_uid(self, uid):
-        if not self.__check_alive():
-            self.__connect()
-        return email_util.get_email_uid(self.mail, uid)
+        return email_util.get_email_by_uid(self.mail, uid)
 
     def __check_alive(self):
         try:
@@ -84,20 +96,3 @@ class EmailServer:
         return True if status == "OK" else False
 
 
-def send_telegram(msg, id_user):
-    email_date = email.utils.parsedate_to_datetime(msg['date'])
-    email_from_, encoding = decode_header(msg['from'])[0]
-    try:
-        email_from = email_from_.decode('utf-8')
-    except:
-        email_from = str(email_from_)
-    email_subject_, encoding = decode_header(msg['subject'])[0]
-    try:
-        email_subject = email_subject_.decode('utf-8')
-    except:
-        email_subject = str(email_subject_)
-
-    logging.error(id_user)
-    msg_send = Bot_2.send_message(chat_id=id_user, parse_mode="Markdown",
-                       text="*"+email_subject + "*\n[" + email_from + "]\n(_" + str(email_date)+"_)")
-    return msg_send is not None

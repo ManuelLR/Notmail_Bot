@@ -1,8 +1,8 @@
 import logging
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.ext import Updater
 import click  # http://click.pocoo.org/6/
 import services.email as email_service
+import os
 
 from commands import load_dispatcher
 
@@ -19,7 +19,7 @@ def init(log_level, token, refresh_inbox, db_path):
 
     logger = logging.getLogger()
 
-    fileHandler = logging.FileHandler("{0}/{1}.log".format("config", "tmail-bot"))
+    fileHandler = logging.FileHandler(os.path.join("config", "tmail-bot.log"))
     fileHandler.setFormatter(log_formatter)
     logger.addHandler(fileHandler)
 

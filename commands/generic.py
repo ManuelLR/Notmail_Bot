@@ -1,6 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import logging
 
+
 def start(bot, update):
     keyboard = [[InlineKeyboardButton("Option 1", callback_data='/start/1'),
                  InlineKeyboardButton("Option 2", callback_data='/notStart/2')],

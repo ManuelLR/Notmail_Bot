@@ -65,3 +65,13 @@ def get_message_content(user, email):
 
 def set_last_message_time(user, email, time):
     logging.error("Not implemented")
+
+Emails = dict()
+
+
+def get_emails_servers():
+    return Emails
+
+
+def add_email_server(key, value):
+    Emails[key] = value

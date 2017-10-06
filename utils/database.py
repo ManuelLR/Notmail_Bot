@@ -4,7 +4,6 @@ import os
 
 def parseAccountsToJson(accounts):
     json = []
-    account = {}
     for acc in accounts:
         account = {}
         account['name'] = acc.getName()
@@ -16,7 +15,6 @@ def parseAccountsToJson(accounts):
 
 def parseJsonToAccounts(accounts):
     result = []
-    account = None
     for acc in accounts:
         account = Account(acc['name'],acc['username'],acc['password'],acc['refresh_time'])
         result.append(account)
@@ -40,16 +38,16 @@ class DBC:
     def searchEmailServer(self, name, protocol):
         EmailServers = self.__db.table('EmailServers')
         query = Query()
-        search = EmailServers.search(query.name == name)
+        search = EmailServers.search(query.name == name and query.protocol == protocol)
         result = eval(str(search))[0] #We suposse that names + protocol will be unique
         emailServer = EmailServer(name, result['host'], result['port'], result['protocol'])
         return emailServer
 
-    def updateEmailServer(self, EmailServer):
+    def updateEmailServer(self, emailServer):
         EmailServers = self.__db.table('EmailServers')
         query = Query()
-        EmailServers.update({'host':EmailServer.getHost(),'port':EmailServer.getPort()},
-                                    query.name == EmailServer.getName() and query.protocol == EmailServer.getProtocol())
+        EmailServers.update({'host':emailServer.getHost(),'port':emailServer.getPort()},
+                                    query.name == emailServer.getName() and query.protocol == emailServer.getProtocol())
 
     def removeEmailServer(self, name, protocol):
         EmailServers = self.__db.table('EmailServers')
@@ -69,22 +67,35 @@ class DBC:
         user = User(id, parseJsonToAccounts(result['accounts']))
         return user
 
+    def updateUser(self, user):
+        Users = self.__db.table('Users')
+        query = Query()
+        Users.update({'id': user.getId(), 'accounts':parseAccountsToJson(user.getAccounts())},
+                                    query.id == user.getId())
+
     def removeUser(self, id):
         Users = self.__db.table('Users')
         query = Query()
         Users.remove(query.id == id)
 
     def getAccountsOfUser(self, user):
-        pass
+        user = self.searchUser(user.getId())
+        return user.getAccounts()
 
     def addAccountToUser(self, user, account):
-        pass
+        user = self.searchUser(user.getId())
+        user.addAccount(account)
+        self.updateUser(user)
 
     def updateAccountOfUser(self, user, account):
-        pass
+        user = self.searchUser(user.getId())
+        user.updateAccount(account)
+        self.updateUser(user)
 
     def removeAccountOfUser(self, user, account):
-        pass
+        user = self.searchUser(user.getId())
+        user.removeAccount(account)
+        self.updateUser(user)
 
 
 class EmailServer:
@@ -129,6 +140,24 @@ class User:
     def getAccounts(self):
         return self.__accounts
 
+    def addAccount(self, account):
+        self.__accounts.append(account)
+
+    def updateAccount(self, account):
+        i = 0
+        for acc in self.__accounts:
+            if acc.getName() == account.getName():
+                self.__accounts[i] = account
+                break
+            i = i + 1
+
+    def removeAccount(self, account):
+        i = 0
+        for acc in self.__accounts:
+            if acc.getName() == account.getName():
+                self.__accounts.pop(i)
+                break
+            i = i + 1
 
 class Account:
     def __init__(self, name, username, password, refresh_time=None):

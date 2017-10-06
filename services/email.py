@@ -1,6 +1,6 @@
 from commands.email import send_msg
 import repository.emails as email_repo
-import utils.smtp as email_util
+import utils.imap as imap_util
 import sched
 import time
 import logging
@@ -39,7 +39,7 @@ class EmailServer:
             if uid is not None:
                 self.folder_last_message_uid[folder] = uid
                 continue
-            uids, err = email_util.get_uid_list(self.mail, folder)
+            uids, err = imap_util.get_uid_list(self.mail, folder)
             if err is not None:
                 logging.error("Error reading folder: " + str(err))
                 continue
@@ -49,8 +49,8 @@ class EmailServer:
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
         message_content = email_repo.get_message_content(self.__user, self.__email)
-        self.mail = email_util.connect(message_content.smtp_server, message_content.smtp_server_port,
-                               message_content.from_email, message_content.from_pwd)
+        self.mail = imap_util.connect(message_content.smtp_server, message_content.smtp_server_port,
+                                      message_content.from_email, message_content.from_pwd)
         self.mail.select('inbox')
 
     def check(self, folder):
@@ -63,7 +63,7 @@ class EmailServer:
         scheduler.run()
 
     def read_email_from_gmail(self, folder):
-        uids, err = email_util.get_uid_list(self.mail, 'inbox')
+        uids, err = imap_util.get_uid_list(self.mail, 'inbox')
         logging.info(uids)
         if len(uids) < 1:
             return
@@ -88,15 +88,15 @@ class EmailServer:
         put_or_quit = '+'
         if not mark_as_read:
             put_or_quit = '-'
-        email_util.change_flags(self.mail, folder, uid, flag='Seen', put_or_quit=put_or_quit)
+        imap_util.change_flags(self.mail, folder, uid, flag='Seen', put_or_quit=put_or_quit)
 
     def __get_uid_list(self, folder):
-        return email_util.get_uid_list(self.mail, folder)
+        return imap_util.get_uid_list(self.mail, folder)
 
     def get_email_by_uid(self, folder, uid):
         if not self.__check_alive():
             self.__connect()
-        return email_util.get_email_by_uid(self.mail, folder, uid)
+        return imap_util.get_email_by_uid(self.mail, folder, uid)
 
     def __check_alive(self):
         try:

@@ -52,7 +52,7 @@ def get_all():
     u_content = UserContent()
     u_content.add_email(smtp_server, smtp_server_port, from_email, from_pwd)
     result = {
-        admin_id:u_content
+        admin_id: u_content
     }
     # return None
     return result

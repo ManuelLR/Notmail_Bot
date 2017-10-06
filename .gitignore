@@ -105,3 +105,6 @@ ENV/
 
 # pycharm
 .idea/
+
+config/tmail-bot.json
+config/tmail-bot.log

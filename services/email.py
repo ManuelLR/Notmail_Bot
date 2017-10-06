@@ -1,5 +1,5 @@
 import repository.emails as email_repo
-import utils.email as email_util
+import utils.smtp as email_util
 import sched
 import time
 import logging
@@ -7,7 +7,6 @@ import datetime
 import pytz
 import email
 from email.header import decode_header
-import os, sys
 
 
 scheduler = sched.scheduler(time.time, time.sleep)
@@ -18,7 +17,7 @@ Bot_2 = None
 Emails = dict()
 
 
-def init_2(bot):
+def init_email_service(bot):
     global Bot_2
     Bot_2 = bot
     email_repo_all = email_repo.get_all()
@@ -27,11 +26,12 @@ def init_2(bot):
         return
 
     for user, u_content in email_repo_all.items():
-        for email, m_content in u_content.items():
-            Emails[email] = Email(user, email)
+        for email, m_content in u_content.messages.items():
+            Emails[email] = EmailServer(user, email)
+            Emails[email].check()
 
 
-class Email:
+class EmailServer:
     def __init__(self, id_user, email, last_message_time=None):
         self.__user = id_user
         self.__email = email
@@ -45,62 +45,40 @@ class Email:
         self.__connect()
 
     def __connect(self):
-        message_content = email_repo.get_message_content(self.user, self.email)
-        self.mail = email_util(message_content.smtp_server, message_content.smtp_port,
-                               message_content.email, message_content.password)
+        logging.debug("Reconnecting account: " + self.__user)
+        message_content = email_repo.get_message_content(self.__user, self.__email)
+        self.mail = email_util.connect(message_content.smtp_server, message_content.smtp_server_port,
+                               message_content.from_email, message_content.from_pwd)
 
     def check(self):
+        logging.debug("Checking account: " + self.__user)
         if not self.__check_alive():
             self.__connect()
 
         self.read_email_from_gmail()
-        scheduler.enter(self.refresh_time, 1, self.check())
+        scheduler.enter(refresh_inbox, 1, self.check)
         scheduler.run()
 
     def read_email_from_gmail(self):
-        logging.debug("Checking emails from account: " + self.__email)
-        unread = []
-        try:
-            self.mail.select('inbox')
-            type, data = self.mail.search(None, 'ALL')
-#            type, data = mail.search(None, 'UnSeen')
-            mail_ids = data[0]
+        self.lastScan, unread = email_util.read_emails(self.mail, 'inbox', self.lastScan)
 
-            id_list = mail_ids.split()
-            first_email_id = int(id_list[0])
-            latest_email_id = int(id_list[-1])
-
-            for i in range(latest_email_id, first_email_id, -1):
-                msg = self.get_email(str(i))
-                msg_date = email.utils.parsedate_to_datetime(msg['date'])
-                if msg_date <= self.lastScan:
-                    break
-                else:
-                    unread.append(msg)
-                    send_telegram(msg)
-
-            if len(unread) > 0:
-                logging.debug("There are " + str(len(unread)) + " news emails !")
-                self.lastScan = email.utils.parsedate_to_datetime(unread[0]['date'])
-            else:
-                logging.debug("No news emails !")
-
-        except Exception as e:
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            logging.error(e)
+        for m in unread:
+            send_telegram(m)
 
     def get_email(self, id):
+        if not self.__check_alive():
+            self.__connect()
         return email_util.get_email(self.mail, id)
 
     def get_email_uid(self, uid):
-        return email_util.get_email_uid(self.mail, id)
+        if not self.__check_alive():
+            self.__connect()
+        return email_util.get_email_uid(self.mail, uid)
 
     def __check_alive(self):
         try:
             status = self.mail.noop()[0]
-            logging.debug("Connection status: " + str(status))
+            # logging.debug("Connection status: " + str(status))
         except:  # smtplib.SMTPServerDisconnected
             status = -1
         return True if status == "OK" else False

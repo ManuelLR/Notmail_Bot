@@ -1,14 +1,16 @@
 import logging
+from configparser import ConfigParser
+import os
 
 refresh_inbox = 3 * 5
 
 
 class UserContent:
     def __init__(self):
-        self.messages = []
+        self.messages = dict()
 
     def add_email(self, smtp_server, smtp_server_port, from_email, from_pwd, refresh_time=refresh_inbox):
-        self.messages.append(MessageContent(smtp_server, smtp_server_port, from_email, from_pwd, refresh_time=refresh_time))
+        self.messages[from_email] = MessageContent(smtp_server, smtp_server_port, from_email, from_pwd, refresh_time=refresh_time)
 
 
 class MessageContent:
@@ -26,7 +28,21 @@ def insert(key, value):
 
 
 def get_all():
-    return None
+    # Retrieve configuration from config file
+    config = ConfigParser()
+    config.read(os.path.join('config', 'myconfig.ini'))
+    smtp_server = config['email test']['SMTP_SERVER']
+    smtp_server_port = config['email test']['SMTP_SERVER_PORT']
+    from_email = config['email test']['FROM_EMAIL']
+    from_pwd = config['email test']['FROM_PWD']
+    admin_id = config['Telegram']['ADMIN_ID']
+    u_content = UserContent()
+    u_content.add_email(smtp_server, smtp_server_port, from_email, from_pwd)
+    result = {
+        admin_id:u_content
+    }
+    # return None
+    return result
 
 
 def get(key):
@@ -35,7 +51,16 @@ def get(key):
 
 def get_message_content(user, email):
 #    return db.get(user)[email]
-    return None
+    config = ConfigParser()
+    config.read(os.path.join('config', 'myconfig.ini'))
+    smtp_server = config['email test']['SMTP_SERVER']
+    smtp_server_port = config['email test']['SMTP_SERVER_PORT']
+    from_email = config['email test']['FROM_EMAIL']
+    from_pwd = config['email test']['FROM_PWD']
+    admin_id = config['Telegram']['ADMIN_ID']
+    result = MessageContent(smtp_server, smtp_server_port, from_email, from_pwd)
+    return result
+    # return None
 
 
 def set_last_message_time(user, email, time):

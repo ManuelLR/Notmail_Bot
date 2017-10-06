@@ -6,25 +6,37 @@ import services.email as email_service
 
 from commands import load_dispatcher
 
-
 @click.command()
 @click.option('--log_level', default="INFO", help='Level to log. [INFO, DEBUG]')
 @click.option('--token', help='The bot token. Please talk with @BotFather')
 @click.option('--refresh_inbox', help='The time between mail checks')
 @click.option('--db_path', help='Path to db (could be empty)')
 def init(log_level, token, refresh_inbox, db_path):
-    logging.basicConfig(level=logging.INFO,
-                        format='[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
-                        datefmt='%d-%m-%y %H:%M:%S')
+
+    # ============== LOGs ============
+    log_formatter = logging.Formatter(fmt='[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
+                                      datefmt='%d-%m-%y %H:%M:%S')
 
     logger = logging.getLogger()
 
+    fileHandler = logging.FileHandler("{0}/{1}.log".format("config", "tmail-bot"))
+    fileHandler.setFormatter(log_formatter)
+    logger.addHandler(fileHandler)
+
+    consoleHandler = logging.StreamHandler()
+    consoleHandler.setFormatter(log_formatter)
+    logger.addHandler(consoleHandler)
+
     if log_level != "INFO":
         logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
 
     logger.setLevel(logging.DEBUG)
 
     logging.getLogger('telegram').setLevel(logging.INFO)
+
+    # ================== BOT ==================
 
     # Create the Updater and pass it your bot's token.
     updater = Updater("token")
@@ -33,7 +45,7 @@ def init(log_level, token, refresh_inbox, db_path):
     # Start the Bot
     updater.start_polling()
     logging.error("Bot started")
-    email_service.init_2(updater.bot)
+    email_service.init_email_service(updater.bot)
 
     # Run the bot until the user presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT

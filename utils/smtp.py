@@ -1,14 +1,17 @@
 import imaplib
 import logging
 import os, sys
-import email.utils as email_util
-import email as email
+import email as email_lib
 from email.header import decode_header
-from urllib.parse import unquote
+
 
 class Message:
-    def __init__(self, msg):
-        self.msg = msg
+    def __init__(self, msg, flags=None):
+        self.msg = email_lib.message_from_bytes(msg[1])
+        try:
+            self.flags = imaplib.ParseFlags(flags)
+        except:
+            self.flags = None
 
     @staticmethod
     def __fix_string(input):
@@ -27,6 +30,11 @@ class Message:
     def get_header(self, property):
         return self.__fix_string(self.msg[property])
 
+    def get_flag(self, property=None):
+        if not property or not self.flags:
+            return False
+        return bytes("\\" + property, 'utf-8') in self.flags
+
     def get_body(self, format='text'):
         maintype = self.msg.get_content_maintype()
         if maintype == 'multipart':
@@ -43,31 +51,22 @@ def connect(smtp_server, smtp_port, email, password):
     return mail
 
 
-def get_email_by_uid(mail, uid):
-    typ, data = mail.uid('FETCH', uid, '(RFC822)')
-    return process_mails(mail, data)
+def get_email_by_uid(mail, folder, uid):
+    mail.select(folder, readonly=True)
+    typ, data = mail.uid('FETCH', uid, '(FLAGS RFC822)')
+    # typ, data = mail.uid('FETCH', uid, '(RFC822)')
+    if typ != "OK":
+        logging.debug("Error retrieving :" + str(folder) + "  __@" + str(uid))
+        return
 
-
-def process_mails(mail, data):
-    for response_part in data:
-        if isinstance(response_part, tuple):
-            msg = email.message_from_bytes(response_part[1])
-            # msg = email.message_from_string(response_part[1].decode())
-            email_subject = msg['subject']
-
-            email_date = msg['date']
-            # email_from = msg['from']
-            logging.debug('(' + str(id) + ')-[' + email_date + ']______Subject : ' + email_subject[:30] + '')
-            return msg
+    return Message(data[0], data[1])
 
 
 # Sorted from oldest(0) to newest(-1)
 def get_uid_list(mail, folder):
-    try:
-        # mail.select('inbox')
-        mail.select(folder, readonly=True)  # Don't mark message as read
-        # mail.select('[Gmail]/All Mail', readonly=True)  # Don't mark message as read
+    mail.select(folder, readonly=True)  # Don't mark message as read
 
+    try:
         type, data = mail.uid('search', None, "ALL")  # search and return uids instead
         #            type, data = mail.search(None, 'UnSeen')
         mail_uids = data[0].split()
@@ -80,4 +79,35 @@ def get_uid_list(mail, folder):
         print(exc_type, fname, exc_tb.tb_lineno)
         logging.error(e)
         return [], e
+
+
+def change_flags(mail, folder, email_uid, flag, put_or_quit):
+    mail.select(folder, readonly=False)
+
+    if put_or_quit not in ['+', '-']:
+        logging.fatal("Incorrect flag!")
+
+    # logging.info(email_uid + ':' + put_or_quit + ':' + flag)
+    mail.select(folder)
+    logging.info(email_uid)
+    typ, data = mail.uid('STORE', email_uid, put_or_quit+'FLAGS', '\\'+flag)
+    logging.info(data)
+    if typ != 'OK':
+        logging.error("Failed to apply " + str(put_or_quit) + "FLAGS " + flag)
+
+
+def delete_flags(mail, folder, email_uid, flag, put_or_quit):
+    if put_or_quit not in ['+', '-']:
+        logging.fatal("Incorrect flag!")
+
+    # logging.info(email_uid + ':' + put_or_quit + ':' + flag)
+    mail.select(folder, readonly=False)
+    logging.info("In delete_flags")
+    logging.info(email_uid)
+    typ, data = mail.uid('STORE', email_uid, '-FLAGS', '\\'+flag)
+    logging.info(data)
+    if typ != 'OK':
+        logging.error("Failed to apply " + str(put_or_quit) + "FLAGS " + flag)
+    mail.select(folder, readonly=True)
+
 

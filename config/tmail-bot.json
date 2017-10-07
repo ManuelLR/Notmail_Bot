@@ -1,1 +1,0 @@
-{"EmailServers": {"1": {"name": "Test", "host": "imap.gmail.com", "port": "993", "protocol": "SMTP"}}, "Users": {"1": {"id": "123456789", "accounts": [{"name": "Test", "username": "username", "password": "password", "refresh_time": 15}]}}}

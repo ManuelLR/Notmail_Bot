@@ -1,6 +1,6 @@
 from commands.email import send_msg
 import repository.emails as email_repo
-import utils.smtp as email_util
+import utils.imap as imap_util
 import sched
 import time
 import logging
@@ -39,18 +39,19 @@ class EmailServer:
             if uid is not None:
                 self.folder_last_message_uid[folder] = uid
                 continue
-            uids, err = email_util.get_uid_list(self.mail, folder)
+            uids, err = imap_util.get_uid_list(self.mail, folder)
             if err is not None:
                 logging.error("Error reading folder: " + str(err))
                 continue
-            # self.folder_last_message_uid[folder] = int(uids[-2])  # for debug
-            self.folder_last_message_uid[folder] = int(uids[-1])
+            self.folder_last_message_uid[folder] = int(uids[-2])  # for debug
+            # self.folder_last_message_uid[folder] = int(uids[-1])
 
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
         message_content = email_repo.get_message_content(self.__user, self.__email)
-        self.mail = email_util.connect(message_content.smtp_server, message_content.smtp_server_port,
-                               message_content.from_email, message_content.from_pwd)
+        self.mail = imap_util.connect(message_content.smtp_server, message_content.smtp_server_port,
+                                      message_content.from_email, message_content.from_pwd)
+        self.mail.select('inbox')
 
     def check(self, folder):
         logging.debug("Checking account: " + self.__email + ":/" + folder)
@@ -62,8 +63,10 @@ class EmailServer:
         scheduler.run()
 
     def read_email_from_gmail(self, folder):
-        uids, err = email_util.get_uid_list(self.mail, 'inbox')
-
+        uids, err = imap_util.get_uid_list(self.mail, 'inbox')
+        logging.info(uids)
+        if len(uids) < 1:
+            return
         most_recent_uid = int(uids[-1])
 
         if most_recent_uid == self.folder_last_message_uid[folder]:
@@ -79,20 +82,25 @@ class EmailServer:
             send_msg(Bot_2, self.__user, self.__email, folder, uid)
         self.folder_last_message_uid[folder] = most_recent_uid
 
-    def __get_uid_list(self, folder):
-        return email_util.get_uid_list(self.mail, folder)
-
-    def get_email_by_uid(self, uid):
+    def mark_as_read(self, folder, uid, mark_as_read=True):
         if not self.__check_alive():
             self.__connect()
-        return email_util.get_email_by_uid(self.mail, uid)
+        put_or_quit = '+'
+        if not mark_as_read:
+            put_or_quit = '-'
+        imap_util.change_flags(self.mail, folder, uid, flag='Seen', put_or_quit=put_or_quit)
+
+    def __get_uid_list(self, folder):
+        return imap_util.get_uid_list(self.mail, folder)
+
+    def get_email_by_uid(self, folder, uid):
+        if not self.__check_alive():
+            self.__connect()
+        return imap_util.get_email_by_uid(self.mail, folder, uid)
 
     def __check_alive(self):
         try:
             status = self.mail.noop()[0]
-            # logging.debug("Connection status: " + str(status))
         except:  # smtplib.SMTPServerDisconnected
             status = -1
         return True if status == "OK" else False
-
-

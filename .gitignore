@@ -102,6 +102,7 @@ ENV/
 
 # KDE
 .directory
+*.md.backup
 
 # pycharm
 .idea/

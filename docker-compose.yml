@@ -1,0 +1,15 @@
+version: '3.2'
+
+services:
+  bot:
+    build: .
+    restart: always
+    volumes:
+      #- type: bind
+        #source: ./config
+        #target: /usr/src/bot/config
+      - type: bind
+        source: ./static
+        target: /opt/app/static
+    environment:
+      - lol=1

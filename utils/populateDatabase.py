@@ -1,6 +1,8 @@
 import os
 from configparser import ConfigParser
-from utils.database import Account, DBC
+
+from repository.repository import DBC
+from repository.Account import Account
 
 def populateDatabase():
     db = DBC(os.path.join('..','config', 'tmail-bot.json'))

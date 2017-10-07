@@ -1,7 +1,8 @@
 import logging
-from configparser import ConfigParser
 import os
-from utils.database import DBC
+from configparser import ConfigParser
+
+from repository.repository import DBC
 
 refresh_inbox = 3 * 5
 

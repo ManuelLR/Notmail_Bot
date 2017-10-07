@@ -1,24 +1,8 @@
-from tinydb import TinyDB, Query
 import os
-
-
-def parseAccountsToJson(accounts):
-    json = []
-    for acc in accounts:
-        account = {}
-        account['name'] = acc.getName()
-        account['username'] = acc.getUsername()
-        account['password'] = acc.getPassword()
-        account['refresh_time'] = acc.getRefresh_Time()
-        json.append(account)
-    return json
-
-def parseJsonToAccounts(accounts):
-    result = []
-    for acc in accounts:
-        account = Account(acc['name'],acc['username'],acc['password'],acc['refresh_time'])
-        result.append(account)
-    return result
+from tinydb import TinyDB, Query
+from repository.EmailServer import EmailServer
+from repository.User import User
+from repository.Account import Account,parseAccountsToJson,parseJsonToAccounts
 
 class DBC:
     def __init__(self, path=None):
@@ -99,100 +83,3 @@ class DBC:
         user = self.searchUser(user.getId())
         user.removeAccount(account)
         self.updateUser(user)
-
-
-class EmailServer:
-    def __init__(self, name, host, port, protocol):
-        self.__name = name
-        self.__host = host
-        self.__port = port
-        self.__protocol = protocol
-
-    def getName(self):
-        return self.__name
-
-    def setName(self, name):
-        self.__name = name
-
-    def getHost(self):
-        return self.__host
-
-    def setHost(self, host):
-        self.__host = host
-
-    def getPort(self):
-        return self.__port
-
-    def setPort(self, port):
-        self.__port = port
-
-    def getProtocol(self):
-        return self.__protocol
-
-    def setProtocol(self, protocol):
-        self.__protocol = protocol
-
-class User:
-    def __init__(self, id, accounts):
-        self.__id = id
-        self.__accounts = accounts
-
-    def getId(self):
-        return self.__id
-
-    def getAccounts(self):
-        return self.__accounts
-
-    def addAccount(self, account):
-        self.__accounts.append(account)
-
-    def updateAccount(self, account):
-        i = 0
-        for acc in self.__accounts:
-            if acc.getName() == account.getName():
-                self.__accounts[i] = account
-                break
-            i = i + 1
-
-    def removeAccount(self, account):
-        i = 0
-        for acc in self.__accounts:
-            if acc.getName() == account.getName():
-                self.__accounts.pop(i)
-                break
-            i = i + 1
-
-class Account:
-    def __init__(self, name, username, password, refresh_time=None):
-        self.__name = name
-        self.__username = username
-        self.__password = password
-        if refresh_time==None:
-            self.__refresh_time = 3 * 5
-        else:
-            self.__refresh_time = refresh_time
-
-    def getName(self):
-        return self.__name
-
-    def setName(self, name):
-        self.__name = name
-
-    def getUsername(self):
-        return self.__username
-
-    def setUsername(self, username):
-        self.__username = username
-
-    def getPassword(self):
-        return self.__password
-
-    def setPassword(self, password):
-        self.__password = password
-
-    def getRefresh_Time(self):
-        return self.__refresh_time
-
-    def setRefresh_Time(self, refresh_time):
-        self.__refresh_time = refresh_time
-

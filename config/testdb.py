@@ -1,5 +1,7 @@
 import os
-from utils.database import DBC, Account, parseAccountsToJson
+
+from repository.repository import DBC
+from repository.Account import Account, parseAccountsToJson
 
 #Test DATABASE utils
 

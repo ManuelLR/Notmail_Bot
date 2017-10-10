@@ -43,7 +43,7 @@ def init(log_level, token, refresh_inbox, db_path):
     load_dispatcher(updater.dispatcher)
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_polling(read_latency=6)
     logging.error("Bot started")
     email_service.init_email_service(updater.bot)
 

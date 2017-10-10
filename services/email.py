@@ -1,3 +1,5 @@
+import os,sys
+
 from commands.email import send_msg
 import repository.emails as email_repo
 import utils.imap as imap_util
@@ -60,7 +62,14 @@ class EmailServer:
 
         self.read_email_from_gmail(folder)
         scheduler.enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
-        scheduler.run()
+        try:
+            scheduler.run()
+        except Exception as e:
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logging.error(exc_type, fname, exc_tb.tb_lineno)
+            logging.error(e)
+            raise e
 
     def read_email_from_gmail(self, folder):
         uids, err = imap_util.get_uid_list(self.mail, 'inbox')

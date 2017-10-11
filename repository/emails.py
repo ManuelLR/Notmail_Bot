@@ -45,9 +45,7 @@ def get_all():
     smtp_server_port = emailServer.getPort()
     user = db.searchUser(config['Telegram']['ADMIN_ID'])
     from_email = user.getAccounts()[0].getUsername()
-    print(from_email)
     from_pwd = user.getAccounts()[0].getPassword()
-    print(from_pwd)
     admin_id = user.getId()
 
     u_content = UserContent()

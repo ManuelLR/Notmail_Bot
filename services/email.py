@@ -1,5 +1,7 @@
 from commands.email import send_msg
 import repository.emails as email_repo
+import repository.repository as repository
+from config.loadConfig import get_config
 import utils.imap as imap_util
 import sched
 import time
@@ -48,9 +50,12 @@ class EmailServer:
 
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
-        message_content = email_repo.get_message_content(self.__user, self.__email)
-        self.mail = imap_util.connect(message_content.smtp_server, message_content.smtp_server_port,
-                                      message_content.from_email, message_content.from_pwd)
+        db = repository.DBC(get_config().db_path)
+        email_server = db.searchEmailServer("Test", "SMTP")
+        account = db.getAccountsOfUser(db.searchUser(get_config().telegram_admin_user_id))[0]
+        # message_content = email_repo.get_message_content(self.__user, self.__email)
+        self.mail = imap_util.connect(email_server.getHost(), email_server.getPort(),
+                                      account.getUsername(), account.getPassword())
         self.mail.select('inbox')
 
     def check(self, folder):

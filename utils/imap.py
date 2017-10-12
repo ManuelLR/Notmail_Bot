@@ -22,7 +22,12 @@ class Message:
                     result = input_mod.decode()
                 else:
                     result = input_mod.decode(encoding)
-            except:
+            except AttributeError as ae:
+                result = str(input_mod)
+                pass
+            except Exception as e:
+                logging.error(e)
+                logging.error(str(input_mod))
                 result = str(input_mod)
             res = res + result + " "
         return res

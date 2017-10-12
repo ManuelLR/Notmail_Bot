@@ -109,3 +109,4 @@ ENV/
 
 config/tmail-bot.json
 config/tmail-bot.log
+config/myconfig.ini

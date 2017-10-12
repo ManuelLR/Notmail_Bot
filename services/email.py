@@ -64,7 +64,7 @@ class EmailServer:
 
     def read_email_from_gmail(self, folder):
         uids, err = imap_util.get_uid_list(self.mail, 'inbox')
-        logging.info(uids)
+        logging.info("Emails in folder: " + str(len(uids)))
         if len(uids) < 1:
             return
         most_recent_uid = int(uids[-1])

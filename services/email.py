@@ -25,14 +25,15 @@ def init_email_service(bot):
 
     for user, u_content in email_repo_all.items():
         for email, m_content in u_content.messages.items():
-            email_repo.add_email_server(email, EmailServer(user, email, {'inbox': None}))
+            email_repo.add_email_server(email, EmailServer(user, email, "SMTP", {'inbox': None}))
             email_repo.get_emails_servers()[email].check('inbox')
 
 
 class EmailServer:
-    def __init__(self, id_user, email, folder_last_message_uid):
+    def __init__(self, id_user, email, protocol, folder_last_message_uid):
         self.__user = id_user
         self.__email = email
+        self.__protocol = protocol
 
         self.__connect()
 
@@ -51,8 +52,8 @@ class EmailServer:
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
         db = repository.DBC(get_config().db_path)
-        email_server = db.searchEmailServer("Test", "SMTP")
         account = db.getAccountsOfUser(db.searchUser(get_config().telegram_admin_user_id))[0]
+        email_server = db.searchEmailServer(account.getName(), self.__protocol)
         # message_content = email_repo.get_message_content(self.__user, self.__email)
         self.mail = imap_util.connect(email_server.getHost(), email_server.getPort(),
                                       account.getUsername(), account.getPassword())
@@ -109,3 +110,25 @@ class EmailServer:
         except:  # smtplib.SMTPServerDisconnected
             status = -1
         return True if status == "OK" else False
+
+    def add_to_folder(self, uid, folder):
+        if not self.__check_alive():
+            self.__connect()
+        try:
+            imap_util.add_message_to_folder(self.mail, uid, folder)
+        except:
+            logging.error("Failed adding to folder")
+
+    def delete_from_folder(self, uid, folder):
+        if not self.__check_alive():
+            self.__connect()
+        try:
+            imap_util.remove_message_from_folder(self.mail, uid, folder)
+        except Exception as e:
+            logging.error("Failed removing from folder")
+            logging.error(e)
+
+    def get_folders(self):
+        if not self.__check_alive():
+            self.__connect()
+        return imap_util.get_folders(self.mail)

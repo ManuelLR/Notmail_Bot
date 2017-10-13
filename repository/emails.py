@@ -3,6 +3,7 @@ import os
 from configparser import ConfigParser
 
 from repository.repository import DBC
+from config.loadConfig import get_config
 
 refresh_inbox = 3 * 5
 
@@ -30,24 +31,16 @@ def insert(key, value):
 
 
 def get_all():
-    # Retrieve configuration from config file
-    config = ConfigParser()
-    config.read(os.path.join('config', 'myconfig.ini'))
-    # smtp_server = config['email test']['SMTP_SERVER']
-    # smtp_server_port = config['email test']['SMTP_SERVER_PORT']
-    # from_email = config['email test']['FROM_EMAIL']
-    # from_pwd = config['email test']['FROM_PWD']
 
     # Retrieve configuration from Database (Do not forgot run "PopulateDatabase" first)
     db = DBC()
     emailServer = db.searchEmailServer('Test','SMTP')
     smtp_server = emailServer.getHost()
     smtp_server_port = emailServer.getPort()
-    user = db.searchUser(config['Telegram']['ADMIN_ID'])
+    user = db.searchUser(get_config().telegram_admin_user_id)
     from_email = user.getAccounts()[0].getUsername()
-    print(from_email)
     from_pwd = user.getAccounts()[0].getPassword()
-    print(from_pwd)
+
     admin_id = user.getId()
 
     u_content = UserContent()

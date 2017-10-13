@@ -2,7 +2,7 @@ import os
 from tinydb import TinyDB, Query
 from repository.EmailServer import EmailServer
 from repository.User import User
-from repository.Account import Account,parseAccountsToJson,parseJsonToAccounts
+from repository.Account import parseAccountsToJson,parseJsonToAccounts
 
 class DBC:
     def __init__(self, path=None):
@@ -83,3 +83,7 @@ class DBC:
         user = self.searchUser(user.getId())
         user.removeAccount(account)
         self.updateUser(user)
+
+    def getEmailServerOfAccount(self, account, protocol):
+        emailServer = self.searchEmailServer(account.getName(), protocol)
+        return emailServer

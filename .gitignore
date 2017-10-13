@@ -102,9 +102,11 @@ ENV/
 
 # KDE
 .directory
+*.md.backup
 
 # pycharm
 .idea/
 
 config/tmail-bot.json
 config/tmail-bot.log
+config/myconfig.ini

@@ -22,7 +22,12 @@ class Message:
                     result = input_mod.decode()
                 else:
                     result = input_mod.decode(encoding)
-            except:
+            except AttributeError as ae:
+                result = str(input_mod)
+                pass
+            except Exception as e:
+                logging.error(e)
+                logging.error(str(input_mod))
                 result = str(input_mod)
             res = res + result + " "
         return res
@@ -45,6 +50,14 @@ class Message:
             return self.msg.get_payload()
 
 
+class Folder:
+    def __init__(self, raw_folder):
+        split1 = raw_folder.decode().split(' \"/\"')
+        name = split1[1].replace(' \"', '').replace('\"', '')
+        self.flags = split1[0]
+        self.name = name
+
+
 def connect(smtp_server, smtp_port, email, password):
     mail = imaplib.IMAP4_SSL(smtp_server, smtp_port)
     mail.login(email, password)
@@ -55,7 +68,7 @@ def get_email_by_uid(mail, folder, uid):
     mail.select(folder, readonly=True)
     typ, data = mail.uid('FETCH', uid, '(FLAGS RFC822)')
     # typ, data = mail.uid('FETCH', uid, '(RFC822)')
-    if typ != "OK":
+    if typ != "OK" or len(data) < 2:
         logging.debug("Error retrieving :" + str(folder) + "  __@" + str(uid))
         return
 
@@ -88,7 +101,7 @@ def change_flags(mail, folder, email_uid, flag, put_or_quit):
         logging.fatal("Incorrect flag!")
 
     # logging.info(email_uid + ':' + put_or_quit + ':' + flag)
-    mail.select(folder)
+    # mail.select(folder)
     logging.info(email_uid)
     typ, data = mail.uid('STORE', email_uid, put_or_quit+'FLAGS', '\\'+flag)
     logging.info(data)
@@ -96,18 +109,42 @@ def change_flags(mail, folder, email_uid, flag, put_or_quit):
         logging.error("Failed to apply " + str(put_or_quit) + "FLAGS " + flag)
 
 
-def delete_flags(mail, folder, email_uid, flag, put_or_quit):
+def edit_flag_modified(mail, folder, email_uid, flag, put_or_quit):
     if put_or_quit not in ['+', '-']:
         logging.fatal("Incorrect flag!")
 
     # logging.info(email_uid + ':' + put_or_quit + ':' + flag)
     mail.select(folder, readonly=False)
-    logging.info("In delete_flags")
+    logging.info("In edit_flag_modified")
     logging.info(email_uid)
-    typ, data = mail.uid('STORE', email_uid, '-FLAGS', '\\'+flag)
+    typ, data = mail.uid('STORE', email_uid, put_or_quit + 'FLAGS', flag)
     logging.info(data)
     if typ != 'OK':
         logging.error("Failed to apply " + str(put_or_quit) + "FLAGS " + flag)
-    mail.select(folder, readonly=True)
+    mail.select(folder, readonly=False)
+
+
+def get_folders(mail):
+    typ, data = mail.list('""', '*')
+    result = []
+    if typ != "OK":
+        logging.error("Failed to list the folders")
+        return None
+    for mbox in data:
+        result.append(Folder(mbox))
+
+    return result
+
+
+def add_message_to_folder(mail, uid, destination_folder):
+    result = mail.uid('COPY', uid, destination_folder)
+    if result != "OK":
+        logging.error("Failed to move message to folder")
+        raise TypeError
+
+
+def remove_message_from_folder(mail, uid, folder):
+    return edit_flag_modified(mail, folder="Inbox", email_uid=uid, flag="\\Deleted", put_or_quit='+')
+
 
 

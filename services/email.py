@@ -2,6 +2,8 @@ import os,sys
 
 from commands.email import send_msg
 import repository.emails as email_repo
+import repository.repository as repository
+from config.loadConfig import get_config
 import utils.imap as imap_util
 import sched
 import time
@@ -25,14 +27,15 @@ def init_email_service(bot):
 
     for user, u_content in email_repo_all.items():
         for email, m_content in u_content.messages.items():
-            email_repo.add_email_server(email, EmailServer(user, email, {'inbox': None}))
+            email_repo.add_email_server(email, EmailServer(user, email, "SMTP", {'inbox': None}))
             email_repo.get_emails_servers()[email].check('inbox')
 
 
 class EmailServer:
-    def __init__(self, id_user, email, folder_last_message_uid):
+    def __init__(self, id_user, email, protocol, folder_last_message_uid):
         self.__user = id_user
         self.__email = email
+        self.__protocol = protocol
 
         self.__connect()
 
@@ -50,9 +53,12 @@ class EmailServer:
 
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
-        message_content = email_repo.get_message_content(self.__user, self.__email)
-        self.mail = imap_util.connect(message_content.smtp_server, message_content.smtp_server_port,
-                                      message_content.from_email, message_content.from_pwd)
+        db = repository.DBC(get_config().db_path)
+        account = db.getAccountsOfUser(db.searchUser(get_config().telegram_admin_user_id))[0]
+        email_server = db.searchEmailServer(account.getName(), self.__protocol)
+        # message_content = email_repo.get_message_content(self.__user, self.__email)
+        self.mail = imap_util.connect(email_server.getHost(), email_server.getPort(),
+                                      account.getUsername(), account.getPassword())
         self.mail.select('inbox')
 
     def check(self, folder):
@@ -73,7 +79,7 @@ class EmailServer:
 
     def read_email_from_gmail(self, folder):
         uids, err = imap_util.get_uid_list(self.mail, 'inbox')
-        logging.info(uids)
+        logging.info("Emails in folder: " + str(len(uids)))
         if len(uids) < 1:
             return
         most_recent_uid = int(uids[-1])
@@ -113,3 +119,25 @@ class EmailServer:
         except:  # smtplib.SMTPServerDisconnected
             status = -1
         return True if status == "OK" else False
+
+    def add_to_folder(self, uid, folder):
+        if not self.__check_alive():
+            self.__connect()
+        try:
+            imap_util.add_message_to_folder(self.mail, uid, folder)
+        except:
+            logging.error("Failed adding to folder")
+
+    def delete_from_folder(self, uid, folder):
+        if not self.__check_alive():
+            self.__connect()
+        try:
+            imap_util.remove_message_from_folder(self.mail, uid, folder)
+        except Exception as e:
+            logging.error("Failed removing from folder")
+            logging.error(e)
+
+    def get_folders(self):
+        if not self.__check_alive():
+            self.__connect()
+        return imap_util.get_folders(self.mail)

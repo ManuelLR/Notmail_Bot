@@ -2,16 +2,25 @@ import logging
 from telegram.ext import Updater
 import click  # http://click.pocoo.org/6/
 import services.email as email_service
-import os
 
 from commands import load_dispatcher
+from config.loadConfig import Config, get_config, set_config
 
 @click.command()
-@click.option('--log_level', default="INFO", help='Level to log. [INFO, DEBUG]')
+@click.option('--config_path', default=None, help='Path to config file. It overwrite all env variables')
 @click.option('--token', help='The bot token. Please talk with @BotFather')
-@click.option('--refresh_inbox', help='The time between mail checks')
+@click.option('--admin_user_id', help='The bot token. Please talk with @BotFather')
+@click.option('--admin_username', help='The bot token. Please talk with @BotFather')
 @click.option('--db_path', help='Path to db (could be empty)')
-def init(log_level, token, refresh_inbox, db_path):
+@click.option('--refresh_inbox', help='The time between mail checks')
+@click.option('--log_level', help='Level to log. [INFO, DEBUG]')
+@click.option('--log_path', help='The bot token. Please talk with @BotFather')
+def init(config_path, token, admin_user_id, admin_username, db_path, refresh_inbox, log_level, log_path):
+
+    set_config(Config())
+    if config_path:
+        get_config().load_config_file(config_path)
+    get_config().load_config_variables(token, admin_user_id, admin_username, db_path, refresh_inbox, log_level, log_path)
 
     # ============== LOGs ============
     log_formatter = logging.Formatter(fmt='[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s',
@@ -19,7 +28,7 @@ def init(log_level, token, refresh_inbox, db_path):
 
     logger = logging.getLogger()
 
-    fileHandler = logging.FileHandler(os.path.join("config", "tmail-bot.log"))
+    fileHandler = logging.FileHandler(get_config().log_path)
     fileHandler.setFormatter(log_formatter)
     logger.addHandler(fileHandler)
 
@@ -27,19 +36,12 @@ def init(log_level, token, refresh_inbox, db_path):
     consoleHandler.setFormatter(log_formatter)
     logger.addHandler(consoleHandler)
 
-    if log_level != "INFO":
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(get_config().log_level)
 
     logging.getLogger('telegram').setLevel(logging.INFO)
 
     # ================== BOT ==================
-
-    # Create the Updater and pass it your bot's token.
-    updater = Updater("token")
+    updater = Updater(get_config().telegram_token)
     load_dispatcher(updater.dispatcher)
 
     # Start the Bot

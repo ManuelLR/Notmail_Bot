@@ -13,10 +13,14 @@ emojis = {
     "remember": "⏰",
     "delete": "🗑",
     "details": "🔎",
-    "archive": "🗃",
+    "archive": "🗄",  # 🗃
     "reply": "↩",
-    "label": "🏷",
+    "label": "🗂",  # 🏷
+    "previous_page": "⏪",
+    "next_page": "⏩",
 }
+
+folders_by_page = 8
 
 
 def view_detailed_email(bot, update):
@@ -57,21 +61,23 @@ def view_email(bot, update):
 
 def mark_read_email(bot, update):
     query = update.callback_query
+    try:
+        data = filter_callback_data(update, "/email/mark_read", 3)
+        user_email = data[0]
+        msg_uid = bytes(data[1], 'utf-8')
+        folder = data[2]
 
-    data = filter_callback_data(update, "/email/mark_read", 3)
-    user_email = data[0]
-    msg_uid = bytes(data[1], 'utf-8')
-    folder = data[2]
+        email_repo.get_emails_servers()[user_email].mark_as_read(folder, msg_uid, True)
 
-    email_repo.get_emails_servers()[user_email].mark_as_read(folder, msg_uid, True)
+        response, reply_markup = __load_main_view(user_email, msg_uid, folder)
 
-    response, reply_markup = __load_main_view(user_email, msg_uid, folder)
-
-    bot.edit_message_text(parse_mode="Markdown",
-                          text=response + "--",
-                          chat_id=query.message.chat_id,
-                          message_id=query.message.message_id,
-                          reply_markup=reply_markup)
+        bot.edit_message_text(parse_mode="Markdown",
+                              text=response + "--",
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              reply_markup=reply_markup)
+    except:
+        logging.error("mark_read_email error")
 
 
 def mark_unread_email(bot, update):
@@ -91,6 +97,97 @@ def mark_unread_email(bot, update):
                               reply_markup=reply_markup)
     except:
         logging.error("mark_unread_email error")
+
+
+def archive_email(bot, update):
+    query = update.callback_query
+
+    try:
+        data = filter_callback_data(update, "/email/archive", 3)
+        user_email = data[0]
+        msg_uid = bytes(data[1], 'utf-8')
+        folder = data[2]
+        email_repo.get_emails_servers()[user_email].delete_from_folder(msg_uid, folder)
+
+        response, reply_markup = __load_main_view(user_email, msg_uid, folder)
+        bot.edit_message_text(parse_mode="Markdown",
+                              text=response + "+-",
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              reply_markup=reply_markup)
+    except Exception as e:
+        logging.error(e)
+        logging.error("archive_email error")
+
+
+def label_list_email(bot, update):
+    query = update.callback_query
+
+    try:
+        data = filter_callback_data(update, "/email/label_l", 4)
+        user_email = data[1]
+        msg_uid = bytes(data[2], 'utf-8')
+        page = data[0]
+        folder = data[3]
+        folders = email_repo.get_emails_servers()[user_email].get_folders()
+
+        common_sufix = '/' + user_email + '/' + msg_uid.decode() + '/' + folder
+
+        header = []
+
+        header.append(InlineKeyboardButton(emojis["back"], callback_data='/email/back' + common_sufix))
+        print(int(page))
+
+        if int(page) > 0:  # Need previous page button
+            header.append(InlineKeyboardButton(emojis["previous_page"], callback_data='/email/label_l/' +
+                                                                                      str(int(page)-1) + common_sufix))
+        header.append(InlineKeyboardButton(emojis["archive"], callback_data='/email/archive' + common_sufix))
+        header.append(InlineKeyboardButton(emojis["delete"], callback_data='/email/delete'+common_sufix))
+        header.append(InlineKeyboardButton(emojis["link"], callback_data='/email/link' + common_sufix))
+
+        if (len(folders) - (int(page) + 1) * folders_by_page) > 0:  # Need next page button
+            header.append(InlineKeyboardButton(emojis["next_page"], callback_data='/email/label_l/' +
+                                                                                  str(int(page)+1) + common_sufix))
+        body = [header]
+        for a in range(0, int(folders_by_page/2)):
+            n = a * 2 + (int(page) * folders_by_page)
+            body.append([
+                InlineKeyboardButton(folders[n].name, callback_data='/email/label' + common_sufix),
+                InlineKeyboardButton(folders[n+1].name, callback_data='/email/label' + common_sufix),
+                         ])
+
+        response, reply_markup = __load_main_view(user_email, msg_uid, folder)
+        bot.edit_message_text(parse_mode="Markdown",
+                              text=response + "+-",
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              reply_markup=InlineKeyboardMarkup(body))
+    except Exception as e:
+        logging.error(e)
+        logging.error("label_list_email error")
+
+
+def delete_email(bot, update):
+    query = update.callback_query
+
+    try:
+        data = filter_callback_data(update, "/email/delete", 3)
+        user_email = data[0]
+        msg_uid = bytes(data[1], 'utf-8')
+        folder = data[2]
+
+        email_repo.get_emails_servers()[user_email].add_to_folder(msg_uid, '[Gmail]/Trash')
+        email_repo.get_emails_servers()[user_email].delete_from_folder(msg_uid, 'Inbox')
+
+        response, reply_markup = __load_main_view(user_email, msg_uid, folder)
+        bot.edit_message_text(parse_mode="Markdown",
+                              text=response + "+-",
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              reply_markup=reply_markup)
+    except Exception as e:
+        logging.error(e)
+        logging.error("delete_email error")
 
 
 def help_email(bot, update):
@@ -147,7 +244,7 @@ def __load_main_view(user_email, msg_uid, folder, back=None):
                     details_button,
                     read_button,
                     InlineKeyboardButton(emojis["archive"], callback_data='/email/archive'+common_sufix),
-                    InlineKeyboardButton(emojis["label"], callback_data='/email/label' + common_sufix),
+                    InlineKeyboardButton(emojis["label"], callback_data='/email/label_l/0' + common_sufix),
                     InlineKeyboardButton(emojis["remember"], callback_data='/email/remember'+common_sufix),
                     InlineKeyboardButton(emojis["link"], callback_data='/email/link' + common_sufix),
                     InlineKeyboardButton(emojis["reply"], callback_data='/email/reply' + common_sufix),

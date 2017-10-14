@@ -109,12 +109,11 @@ def archive_email(bot, update):
         folder = data[2]
         email_repo.get_emails_servers()[user_email].delete_from_folder(msg_uid, folder)
 
-        response, reply_markup = __load_main_view(user_email, msg_uid, folder)
+        previous_response = query.message.text_markdown
         bot.edit_message_text(parse_mode="Markdown",
-                              text=response + "+-",
+                              text=previous_response+"\n\n"+emojis["archive"]+"Archived! "+emojis["archive"],
                               chat_id=query.message.chat_id,
-                              message_id=query.message.message_id,
-                              reply_markup=reply_markup)
+                              message_id=query.message.message_id)
     except Exception as e:
         logging.error(e)
         logging.error("archive_email error")
@@ -179,12 +178,12 @@ def delete_email(bot, update):
         email_repo.get_emails_servers()[user_email].add_to_folder(msg_uid, '[Gmail]/Trash')
         email_repo.get_emails_servers()[user_email].delete_from_folder(msg_uid, 'Inbox')
 
-        response, reply_markup = __load_main_view(user_email, msg_uid, folder)
+        previous_response = query.message.text_markdown
+
         bot.edit_message_text(parse_mode="Markdown",
-                              text=response + "+-",
+                              text=previous_response+"\n\n"+emojis["delete"]+"Deleted! "+emojis["delete"],
                               chat_id=query.message.chat_id,
-                              message_id=query.message.message_id,
-                              reply_markup=reply_markup)
+                              message_id=query.message.message_id)
     except Exception as e:
         logging.error(e)
         logging.error("delete_email error")

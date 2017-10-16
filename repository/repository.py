@@ -1,8 +1,9 @@
 import os
 from tinydb import TinyDB, Query
-from repository.EmailServer import EmailServer
-from repository.User import User
-from repository.Account import parseAccountsToJson,parseJsonToAccounts
+from repository.email_server import EmailServer
+from repository.user import User
+from repository.account import parse_accounts_to_json, parse_json_to_accounts
+
 
 class DBC:
     def __init__(self, path=None):
@@ -11,79 +12,79 @@ class DBC:
         else:
             self.db = TinyDB(path)
 
-    def getTable(self, tableName):
-        return self.db.table(tableName)
+    def get_table(self, table_name):
+        return self.db.table(table_name)
 
     def purge(self):
         self.db.purge_tables()
 
-    def insertEmailServer(self, name, host, port, protocol):
-        EmailServers = self.db.table('EmailServers')
-        EmailServers.insert({'name':name,'host':host,'port':port,'protocol':protocol})
+    def insert_email_server(self, name, host, port, protocol):
+        email_servers = self.db.table('EmailServers')
+        email_servers.insert({'name': name, 'host': host, 'port': port, 'protocol': protocol})
         return EmailServer(name, host, port, protocol)
 
-    def searchEmailServer(self, name, protocol):
-        EmailServers = self.db.table('EmailServers')
+    def search_email_server(self, name, protocol):
+        email_servers = self.db.table('EmailServers')
         query = Query()
-        search = EmailServers.search(query.name == name and query.protocol == protocol)
-        result = eval(str(search))[0] #We suposse that names + protocol will be unique
-        emailServer = EmailServer(name, result['host'], result['port'], result['protocol'])
-        return emailServer
+        search = email_servers.search(query.name == name and query.protocol == protocol)
+        result = eval(str(search))[0]  # We suppose that names + protocol will be unique
+        email_server = EmailServer(name, result['host'], result['port'], result['protocol'])
+        return email_server
 
-    def updateEmailServer(self, emailServer):
-        EmailServers = self.db.table('EmailServers')
+    def update_email_server(self, email_server):
+        email_servers = self.db.table('EmailServers')
         query = Query()
-        EmailServers.update({'host':emailServer.host,'port':emailServer.port},
-                                    query.name == emailServer.name and query.protocol == emailServer.protocol)
+        email_servers.update({'host': email_server.host, 'port': email_server.port},
+                             query.name == email_server.name and query.protocol == email_server.protocol)
 
-    def removeEmailServer(self, name, protocol):
-        EmailServers = self.db.table('EmailServers')
+    def remove_email_server(self, name, protocol):
+        email_servers = self.db.table('EmailServers')
         query = Query()
-        EmailServers.remove(query.name == name and query.protocol == protocol)
+        email_servers.remove(query.name == name and query.protocol == protocol)
 
-    def insertUser(self, id, accounts):
-        Users = self.db.table('Users')
-        Users.insert({'id': id, 'accounts':parseAccountsToJson(accounts)})
+    def insert_user(self, id, accounts):
+        users = self.db.table('Users')
+        users.insert({'id': id, 'accounts': parse_accounts_to_json(accounts)})
         return User(id, accounts)
 
-    def searchUser(self, id):
-        Users = self.db.table('Users')
+    def search_user(self, id):
+        users = self.db.table('Users')
         query = Query()
-        search = Users.search(query.id == id)
+        search = users.search(query.id == id)
         result = eval(str(search))[0]
-        user = User(id, parseJsonToAccounts(result['accounts']))
+        user = User(id, parse_json_to_accounts(result['accounts']))
         return user
 
-    def updateUser(self, user):
-        Users = self.db.table('Users')
+    def update_user(self, user):
+        users = self.db.table('Users')
         query = Query()
-        Users.update({'id': user.id, 'accounts':parseAccountsToJson(user.accounts)},
-                                    query.id == user.id)
+        users.update({'id': user.id, 'accounts': parse_accounts_to_json(user.accounts)},
+                     query.id == user.id)
 
-    def removeUser(self, id):
-        Users = self.db.table('Users')
+    def remove_user(self, user_id):
+        users = self.db.table('Users')
         query = Query()
-        Users.remove(query.id == id)
+        users.remove(query.id == user_id)
 
-    def getAccountsOfUser(self, user):
-        user = self.searchUser(user.id)
+    def get_accounts_of_user(self, user):
+        user = self.search_user(user.id)
         return user.accounts
 
-    def addAccountToUser(self, user, account):
-        user = self.searchUser(user.id)
-        user.addAccount(account)
-        self.updateUser(user)
+    def add_account_to_user(self, user, account):
+        user = self.search_user(user.id)
+        user.add_account(account)
+        self.update_user(user)
 
-    def updateAccountOfUser(self, user, account):
-        user = self.searchUser(user.id)
-        user.updateAccount(account)
-        self.updateUser(user)
+    def update_account_of_user(self, user, account):
+        user = self.search_user(user.id)
+        user.update_account(account)
+        self.update_user(user)
 
-    def removeAccountOfUser(self, user, account):
-        user = self.searchUser(user.id)
-        user.removeAccount(account)
-        self.updateUser(user)
+    def remove_account_of_user(self, user, account):
+        user = self.search_user(user.id)
+        user.remove_account(account)
+        self.update_user(user)
 
-    def getEmailServerOfAccount(self, account, protocol):
-        emailServer = self.searchEmailServer(account.name, protocol)
-        return emailServer
+    def get_email_server_of_account(self, account, protocol):
+        email_server = self.search_email_server(account.name, protocol)
+        return email_server

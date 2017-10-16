@@ -8,13 +8,13 @@ db = DBC(os.path.join('..','config', 'tmail-bot.json'))
 
 #Test EmailServer
 
-db.insertEmailServer('Gmail','smtp.gmail.com',465,'SMTP')
-EmailServer = db.searchEmailServer('Gmail','SMTP')
+db.insert_email_server('Gmail', 'smtp.gmail.com', 465, 'SMTP')
+EmailServer = db.search_email_server('Gmail', 'SMTP')
 print('\n['+EmailServer.name+']\nHost: '+EmailServer.host+'\nPort: '+str(EmailServer.port)+
       '\nProtocol: '+EmailServer.protocol)
 EmailServer.port = 468
-db.updateEmailServer(EmailServer)
-EmailServer = db.searchEmailServer('Gmail','SMTP')
+db.update_email_server(EmailServer)
+EmailServer = db.search_email_server('Gmail', 'SMTP')
 print('\n['+EmailServer.name+']\nHost: '+EmailServer.host+'\nPort: '+str(EmailServer.port)+
       '\nProtocol: ' + EmailServer.protocol)
-db.removeEmailServer('Gmail','SMTP')
+db.remove_email_server('Gmail', 'SMTP')

@@ -10,11 +10,13 @@ import time
 import logging
 
 
-scheduler = sched.scheduler(time.time, time.sleep)
+# scheduler = sched.scheduler(time.time, time.sleep)
 
 # refresh_inbox = 3 * 60
 refresh_inbox = 3 * 5
 Bot_2 = None
+
+scheduler = dict
 
 
 def init_email_service(bot):
@@ -55,10 +57,10 @@ class EmailServer:
         logging.debug("Reconnecting account: " + self.__user)
         db = repository.DBC(get_config().db_path)
         account = db.getAccountsOfUser(db.searchUser(get_config().telegram_admin_user_id))[0]
-        email_server = db.searchEmailServer(account.getName(), self.__protocol)
+        email_server = db.searchEmailServer(account.name, self.__protocol)
         # message_content = email_repo.get_message_content(self.__user, self.__email)
-        self.mail = imap_util.connect(email_server.getHost(), email_server.getPort(),
-                                      account.getUsername(), account.getPassword())
+        self.mail = imap_util.connect(email_server.host, email_server.port,
+                                      account.username, account.password)
         self.mail.select('inbox')
 
     def check(self, folder):
@@ -67,9 +69,11 @@ class EmailServer:
             self.__connect()
 
         self.read_email_from_gmail(folder)
-        scheduler.enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
         try:
-            scheduler.run()
+            key = self.__user + self.__email + self.__protocol
+            scheduler[key] = sched.scheduler(time.time, time.sleep)
+            scheduler[key].enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
+            scheduler[key].run()
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

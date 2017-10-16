@@ -1,31 +1,31 @@
 import os
 
 from repository.repository import DBC
-from repository.Account import Account, parseAccountsToJson
+from repository.account import Account, parse_accounts_to_json
 
-db = DBC(os.path.join('..','config', 'tmail-bot.json'))
+db = DBC(os.path.join('..', 'config', 'tmail-bot.json'))
 
-#Test Accounts
+# Test Accounts
 
-account1 = Account('Gmail','test@gmail.com','mypass',None)
-account2 = Account('Outlook','test@outlook.com','mypass',25)
-accounts = [account1,account2]
-db.insertUser('123456789',accounts)
-User = db.searchUser('123456789')
-account3 = Account('Gmail','test@gmail.com','mypass',None)
-account4 = Account('Outlook','test@outlook.com','mypass',25)
+account1 = Account('Gmail', 'test@gmail.com', 'mypass', None)
+account2 = Account('Outlook', 'test@outlook.com', 'mypass', 25)
+accounts = [account1, account2]
+db.insert_user('123456789', accounts)
+User = db.search_user('123456789')
+account3 = Account('Gmail', 'test@gmail.com', 'mypass', None)
+account4 = Account('Outlook', 'test@outlook.com', 'mypass', 25)
 accounts = [account3]
-db.insertUser('123456789',accounts)
-User1 = db.searchUser('123456789')
-print('\n['+User1.id+']\nAccounts: '+str(parseAccountsToJson(User1.accounts)))
-db.addAccountToUser(User,account4)
-User1 = db.searchUser('123456789')
-print('\n['+User1.id+']\nAccounts: '+str(parseAccountsToJson(User1.accounts)))
-account2.refresh_time = 35
-db.updateAccountOfUser(User,account4)
-User1 = db.searchUser('123456789')
-print('\n['+User1.id+']\nAccounts: '+str(parseAccountsToJson(User1.accounts)))
-db.removeAccountOfUser(User,account4)
-User1 = db.searchUser('123456789')
-print('\n['+User1.id+']\nAccounts: '+str(parseAccountsToJson(User1.accounts)))
-db.removeUser('123456789')
+db.insert_user('123456789', accounts)
+User1 = db.search_user('123456789')
+print('\n[' + User1.id + ']\nAccounts: ' + str(parse_accounts_to_json(User1.accounts)))
+db.add_account_to_user(User, account4)
+User1 = db.search_user('123456789')
+print('\n[' + User1.id + ']\nAccounts: ' + str(parse_accounts_to_json(User1.accounts)))
+account4.refresh_time = 35
+db.update_account_of_user(User, account4)
+User1 = db.search_user('123456789')
+print('\n[' + User1.id + ']\nAccounts: ' + str(parse_accounts_to_json(User1.accounts)))
+db.remove_account_of_user(User, account4)
+User1 = db.search_user('123456789')
+print('\n[' + User1.id + ']\nAccounts: ' + str(parse_accounts_to_json(User1.accounts)))
+db.remove_user('123456789')

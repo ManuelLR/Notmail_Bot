@@ -3,10 +3,10 @@ class User:
         self.id = id
         self.accounts = accounts
 
-    def addAccount(self, account):
+    def add_account(self, account):
         self.accounts.append(account)
 
-    def updateAccount(self, account):
+    def update_account(self, account):
         i = 0
         for acc in self.accounts:
             if acc.name == account.name:
@@ -14,7 +14,7 @@ class User:
                 break
             i = i + 1
 
-    def removeAccount(self, account):
+    def remove_account(self, account):
         i = 0
         for acc in self.accounts:
             if acc.name == account.name:

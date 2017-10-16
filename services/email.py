@@ -54,8 +54,8 @@ class EmailServer:
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
         db = repository.DBC(get_config().db_path)
-        account = db.getAccountsOfUser(db.searchUser(get_config().telegram_admin_user_id))[0]
-        email_server = db.searchEmailServer(account.name, self.__protocol)
+        account = db.get_accounts_of_user(db.search_user(get_config().telegram_admin_user_id))[0]
+        email_server = db.search_email_server(account.name, self.__protocol)
         # message_content = email_repo.get_message_content(self.__user, self.__email)
         self.mail = imap_util.connect(email_server.host, email_server.port,
                                       account.username, account.password)

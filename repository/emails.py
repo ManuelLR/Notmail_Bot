@@ -34,10 +34,10 @@ def get_all():
 
     # Retrieve configuration from Database (Do not forgot run "PopulateDatabase" first)
     db = DBC()
-    emailServer = db.searchEmailServer('Test','SMTP')
-    smtp_server = emailServer.host
-    smtp_server_port = emailServer.port
-    user = db.searchUser(get_config().telegram_admin_user_id)
+    email_server = db.search_email_server('Test', 'SMTP')
+    smtp_server = email_server.host
+    smtp_server_port = email_server.port
+    user = db.search_user(get_config().telegram_admin_user_id)
     from_email = user.accounts[0].username
     from_pwd = user.accounts[0].password
 

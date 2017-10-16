@@ -8,13 +8,11 @@ import time
 import logging
 
 
-# scheduler = sched.scheduler(time.time, time.sleep)
+scheduler = sched.scheduler(time.time, time.sleep)
 
 # refresh_inbox = 3 * 60
 refresh_inbox = 3 * 5
 Bot_2 = None
-
-scheduler = dict
 
 
 def init_email_service(bot):
@@ -67,11 +65,8 @@ class EmailServer:
             self.__connect()
 
         self.read_email_from_gmail(folder)
-
-        key = self.__user + self.__email + self.__protocol
-        scheduler[key] = sched.scheduler(time.time, time.sleep)
-        scheduler[key].enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
-        scheduler[key].run()
+        scheduler.enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
+        scheduler.run()
 
     def read_email_from_gmail(self, folder):
         uids, err = imap_util.get_uid_list(self.mail, 'inbox')

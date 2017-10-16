@@ -10,8 +10,8 @@ import logging
 
 scheduler = sched.scheduler(time.time, time.sleep)
 
-# refresh_inbox = 3 * 60
-refresh_inbox = 3 * 5
+refresh_inbox = 3 * 60
+# refresh_inbox = 3 * 5
 Bot_2 = None
 
 

@@ -3,6 +3,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from commands.generic import start, help, error, button
 from commands.email import view_email, view_detailed_email, mark_read_email, mark_unread_email,\
     help_email, archive_email, label_list_email, delete_email
+from commands.account import account_options
 
 
 def load_dispatcher(dispatcher):
@@ -23,5 +24,8 @@ def load_dispatcher(dispatcher):
 
 
     dispatcher.add_handler(CommandHandler('list_folders', help))
+
+    # ACCOUNTS
+    dispatcher.add_handler(CallbackQueryHandler(account_options, pattern="(\/account\/options)"))
 
     dispatcher.add_error_handler(error)

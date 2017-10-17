@@ -61,6 +61,13 @@ class DBC:
         users.update({'id': user.id, 'accounts': parse_accounts_to_json(user.accounts)},
                      query.id == user.id)
 
+    def get_all_users(self):
+        users = self.db.table('Users')
+        res = []
+        for a in users.all():
+            res.append(User(a['id'], a['accounts']))
+        return res
+
     def remove_user(self, user_id):
         users = self.db.table('Users')
         query = Query()

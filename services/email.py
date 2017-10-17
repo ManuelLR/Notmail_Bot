@@ -8,6 +8,7 @@ import utils.imap as imap_util
 import sched
 import time
 import logging
+from repository.repository import DBC
 
 
 scheduler = sched.scheduler(time.time, time.sleep)
@@ -21,14 +22,16 @@ def init_email_service(bot):
     global Bot_2
     Bot_2 = bot
     email_repo_all = email_repo.get_all()
+    db = DBC()
+    users = db.get_all_users()
 
-    if not email_repo_all:
+    if not users:
         return
 
-    for user, u_content in email_repo_all.items():
-        for email, m_content in u_content.messages.items():
-            email_repo.add_email_server(email, EmailServer(user, email, "SMTP", {'inbox': None}))
-            email_repo.get_emails_servers()[email].check('inbox')
+    for u in users:
+        for a in u.accounts:
+            email_repo.add_email_server(a["username"], EmailServer(u.id, a["username"], "SMTP", {'inbox': None}))
+            email_repo.get_emails_servers()[a["username"]].check('inbox')
 
 
 class EmailServer:

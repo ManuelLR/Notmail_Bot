@@ -4,6 +4,7 @@ import os, sys
 import email as email_lib
 from email.header import decode_header
 
+imaplib._MAXLINE = 100000
 
 class Message:
     def __init__(self, msg, flags=None):

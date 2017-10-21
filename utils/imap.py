@@ -7,7 +7,10 @@ from email.header import decode_header
 imaplib._MAXLINE = 100000
 
 class Message:
-    def __init__(self, msg, flags=None):
+    def __init__(self, email, uid, folders, msg, flags=None):
+        self.email = email
+        self.uid = uid
+        self.folders = folders
         self.msg = email_lib.message_from_bytes(msg[1])
         try:
             self.flags = imaplib.ParseFlags(flags)
@@ -62,6 +65,7 @@ class Folder:
 def connect(smtp_server, smtp_port, email, password):
     mail = imaplib.IMAP4_SSL(smtp_server, smtp_port)
     mail.login(email, password)
+    mail.user = email
     return mail
 
 
@@ -73,7 +77,7 @@ def get_email_by_uid(mail, folder, uid):
         logging.debug("Error retrieving :" + str(folder) + "  __@" + str(uid))
         return
 
-    return Message(data[0], data[1])
+    return Message(mail.user, uid, [folder], data[0], data[1])
 
 
 # Sorted from oldest(0) to newest(-1)

@@ -19,8 +19,8 @@ emojis = {
 }
 
 
-def send_msg(bot, id_user, user_email, folder, msg_uid, msg):
-    response, reply_markup = load_main_view(user_email, msg_uid, msg, folder)
+def notify_new_email(bot, id_user, msg):
+    response, reply_markup = load_main_view(msg)
 
     msg_send = bot.send_message(chat_id=id_user, parse_mode="Markdown",
                                 text=response,
@@ -28,7 +28,7 @@ def send_msg(bot, id_user, user_email, folder, msg_uid, msg):
     return msg_send is not None
 
 
-def load_main_view(user_email, msg_uid, msg, folder, back=None):
+def load_main_view(msg, back=None):
     # msg = get_email_server(user_email).get_email_by_uid(folder, msg_uid)
     # a = msg.msg
     email_date = email_lib.utils.parsedate_to_datetime(msg.msg["date"])
@@ -36,7 +36,7 @@ def load_main_view(user_email, msg_uid, msg, folder, back=None):
     email_from = msg.get_header('from')
     email_subject = msg.get_header('subject')
 
-    common_sufix = '/' + user_email + '/' + msg_uid.decode() + '/' + folder
+    common_sufix = '/' + msg.email + '/' + msg.uid.decode() + '/' + msg.folders[0]
 
     if msg.get_flag("Seen"):
         read_button = InlineKeyboardButton(emojis["is_read"], callback_data='/email/mark_unread' + common_sufix)

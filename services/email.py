@@ -1,15 +1,11 @@
-from utils.telegram import send_msg
+from utils.telegram import notify_new_email
 import repository.repository as repository
 from config.loadConfig import get_config
 import utils.imap as imap_util
 import logging
 import schedule
 from repository.repository import get_dbc
-from services import get_bot
-
-
-
-Emails = dict()
+from services import get_bot, get_email_server, add_email_server
 
 
 def init_email_service():
@@ -21,8 +17,8 @@ def init_email_service():
     for u in users:
         for a in u.accounts:
             add_email_server(a.username, EmailService(u.id, a.username, a.protocol, {'inbox': None}))
-            get_emails_servers()[a.username].schedule(get_config().default_refresh_inbox)
-            get_emails_servers()[a.username].check('inbox')
+            get_email_server(a.username).schedule(a.refresh_time)
+            get_email_server(a.username).check('inbox')
 
 
 class EmailService:
@@ -86,7 +82,7 @@ class EmailService:
 
         for uid in reversed(uids_truncated):
             msg = self.get_email_by_uid(folder, uid)
-            send_msg(get_bot(), self.__user, self.__email, folder, uid, msg)
+            notify_new_email(get_bot(), self.__user, msg)
         self.folder_last_message_uid[folder] = most_recent_uid
 
     def mark_as_read(self, folder, uid, mark_as_read=True):
@@ -134,13 +130,3 @@ class EmailService:
             self.__connect()
         return imap_util.get_folders(self.mail)
 
-
-def get_emails_servers():
-    return Emails
-
-def get_email_server(inp):
-    return Emails[inp]
-
-
-def add_email_server(key, value):
-    Emails[key] = value

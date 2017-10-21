@@ -3,13 +3,12 @@ import repository.emails as email_repo
 import repository.repository as repository
 from config.loadConfig import get_config
 import utils.imap as imap_util
-import sched
 import time
 import logging
 from repository.repository import DBC
+import schedule
+import threading
 
-
-scheduler = sched.scheduler(time.time, time.sleep)
 
 refresh_inbox = 3 * 60
 # refresh_inbox = 3 * 5
@@ -26,10 +25,28 @@ def init_email_service(bot):
     if not users:
         return
 
+    __init_scheduler()
+
     for u in users:
         for a in u.accounts:
             email_repo.add_email_server(a["username"], EmailServer(u.id, a["username"], "SMTP", {'inbox': None}))
+            email_repo.get_emails_servers()[a["username"]].schedule(refresh_inbox)
             email_repo.get_emails_servers()[a["username"]].check('inbox')
+
+def __init_scheduler():
+    cease_continuous_run = threading.Event()
+
+    class ScheduleThread(threading.Thread):
+        @classmethod
+        def run(cls):
+            while not cease_continuous_run.is_set():
+                schedule.run_pending()
+                time.sleep(1)
+
+    continuous_thread = ScheduleThread()
+    continuous_thread.start()
+
+    return cease_continuous_run
 
 
 class EmailServer:
@@ -68,8 +85,12 @@ class EmailServer:
             self.__connect()
 
         self.read_email_from_gmail(folder)
-        scheduler.enter(refresh_inbox, 1, self.check, kwargs={'folder': folder})
-        scheduler.run()
+
+    def schedule(self, time_seconds):
+        schedule.every(time_seconds).seconds.do(self.check, 'inbox')\
+            .tag('checkemail',
+                 self.__email.partition("@")[0],
+                 self.__protocol)
 
     def read_email_from_gmail(self, folder):
         uids, err = imap_util.get_uid_list(self.mail, 'inbox')

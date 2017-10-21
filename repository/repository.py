@@ -5,6 +5,18 @@ from repository.user import User
 from repository.account import parse_accounts_to_json, parse_json_to_accounts
 
 
+db = None
+
+
+def get_dbc():
+    return db
+
+
+def set_dbc(dbc):
+    global db
+    db = dbc
+
+
 class DBC:
     def __init__(self, path=None):
         if path is None:
@@ -65,7 +77,7 @@ class DBC:
         users = self.db.table('Users')
         res = []
         for a in users.all():
-            res.append(User(a['id'], a['accounts']))
+            res.append(User(a['id'], parse_json_to_accounts(a['accounts'])))
         return res
 
     def remove_user(self, user_id):

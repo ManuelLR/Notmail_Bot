@@ -1,3 +1,6 @@
+from config.loadConfig import get_config
+
+
 def parse_accounts_to_json(accounts):
     json = []
     for acc in accounts:
@@ -25,6 +28,6 @@ class Account:
         self.port = port
         self.protocol = protocol
         if refresh_time is None:
-            self.refresh_time = 3 * 5
+            self.refresh_time = get_config().default_refresh_inbox
         else:
             self.refresh_time = refresh_time

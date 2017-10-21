@@ -28,6 +28,6 @@ def account_servers(bot, update):
 
     reply_markup = ReplyKeyboardMarkup(keyboard)
     reply_markup.one_time_keyboard = True
-    
+
     query.message.reply_text('On which server do you want to add the Account?', reply_markup=reply_markup)
     logging.debug(query.message.chat_id)

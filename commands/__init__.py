@@ -6,6 +6,9 @@ from commands.email import view_email, view_detailed_email, mark_read_email, mar
 from commands.account import account_options, account_servers
 
 
+bot = None
+
+
 def load_dispatcher(dispatcher):
     dispatcher.add_handler(CommandHandler('start', start))
     dispatcher.add_handler(CommandHandler('help', help))
@@ -30,3 +33,11 @@ def load_dispatcher(dispatcher):
     dispatcher.add_handler(CallbackQueryHandler(account_servers, pattern="(\/account\/add\/servers)"))
 
     dispatcher.add_error_handler(error)
+
+
+def get_bot():
+    return bot
+
+def set_bot(inp):
+    global bot
+    bot = inp

@@ -3,50 +3,23 @@ import repository.emails as email_repo
 import repository.repository as repository
 from config.loadConfig import get_config
 import utils.imap as imap_util
-import time
 import logging
-from repository.repository import DBC
 import schedule
-import threading
+from repository.repository import get_dbc
+from commands import get_bot
 
 
-refresh_inbox = 3 * 60
-# refresh_inbox = 3 * 5
-Bot_2 = None
-
-
-def init_email_service(bot):
-    global Bot_2
-    Bot_2 = bot
-    email_repo_all = email_repo.get_all()
-    db = DBC()
-    users = db.get_all_users()
+def init_email_service():
+    users = get_dbc().get_all_users()
 
     if not users:
         return
 
-    __init_scheduler()
-
     for u in users:
         for a in u.accounts:
-            email_repo.add_email_server(a["username"], EmailServer(u.id, a["username"], "IMAP", {'inbox': None}))
-            email_repo.get_emails_servers()[a["username"]].schedule(refresh_inbox)
-            email_repo.get_emails_servers()[a["username"]].check('inbox')
-
-def __init_scheduler():
-    cease_continuous_run = threading.Event()
-
-    class ScheduleThread(threading.Thread):
-        @classmethod
-        def run(cls):
-            while not cease_continuous_run.is_set():
-                schedule.run_pending()
-                time.sleep(1)
-
-    continuous_thread = ScheduleThread()
-    continuous_thread.start()
-
-    return cease_continuous_run
+            email_repo.add_email_server(a.username, EmailService(u.id, a.username, a.protocol, {'inbox': None}))
+            email_repo.get_emails_servers()[a.username].schedule(get_config().default_refresh_inbox)
+            email_repo.get_emails_servers()[a.username].check('inbox')
 
 
 class EmailServer:
@@ -109,7 +82,7 @@ class EmailServer:
             uids_truncated.append(uid)
 
         for uid in reversed(uids_truncated):
-            send_msg(Bot_2, self.__user, self.__email, folder, uid)
+            send_msg(get_bot(), self.__user, self.__email, folder, uid)
         self.folder_last_message_uid[folder] = most_recent_uid
 
     def mark_as_read(self, folder, uid, mark_as_read=True):

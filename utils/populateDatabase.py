@@ -21,7 +21,7 @@ def populateDatabase():
     db.insert_email_server('Test', config['email test']['SMTP_SERVER'], config['email test']['SMTP_SERVER_PORT']
                            , 'SMTP')
     account = Account('Test',config['email test']['FROM_EMAIL'],config['email test']['FROM_PWD'],
-                      config['email test']['SMTP_SERVER'],config['email test']['SMTP_SERVER_PORT'], 'SMTP',None)
+                      config['email test']['SMTP_SERVER'],config['email test']['SMTP_SERVER_PORT'], 'IMAP',None)
     db.insert_user(config['Telegram']['ADMIN_ID'], [account])
 
 

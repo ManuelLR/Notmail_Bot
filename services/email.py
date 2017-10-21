@@ -29,7 +29,7 @@ def init_email_service(bot):
 
     for u in users:
         for a in u.accounts:
-            email_repo.add_email_server(a["username"], EmailServer(u.id, a["username"], "SMTP", {'inbox': None}))
+            email_repo.add_email_server(a["username"], EmailServer(u.id, a["username"], "IMAP", {'inbox': None}))
             email_repo.get_emails_servers()[a["username"]].schedule(refresh_inbox)
             email_repo.get_emails_servers()[a["username"]].check('inbox')
 

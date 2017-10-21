@@ -82,7 +82,7 @@ def get_uid_list(mail, folder):
 
     try:
         type, data = mail.uid('search', None, "ALL")  # search and return uids instead
-        #            type, data = mail.search(None, 'UnSeen')
+        # type, data = mail.search(None, 'UnSeen')
         mail_uids = data[0].split()
 
         return mail_uids, None
@@ -90,23 +90,20 @@ def get_uid_list(mail, folder):
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-        print(exc_type, fname, exc_tb.tb_lineno)
+        logging.error(exc_type, fname, exc_tb.tb_lineno)
         logging.error(e)
         return [], e
 
 
 def change_flags(mail, folder, email_uid, flag, put_or_quit):
-    mail.select(folder, readonly=False)
-
     if put_or_quit not in ['+', '-']:
         logging.fatal("Incorrect flag!")
 
-    # logging.info(email_uid + ':' + put_or_quit + ':' + flag)
-    # mail.select(folder)
-    logging.info(email_uid)
+    mail.select(folder, readonly=False)
     typ, data = mail.uid('STORE', email_uid, put_or_quit+'FLAGS', '\\'+flag)
-    logging.info(data)
     if typ != 'OK':
+        logging.info(email_uid + ':' + put_or_quit + ':' + flag)
+        logging.info(data)
         logging.error("Failed to apply " + str(put_or_quit) + "FLAGS " + flag)
 
 
@@ -114,15 +111,13 @@ def edit_flag_modified(mail, folder, email_uid, flag, put_or_quit):
     if put_or_quit not in ['+', '-']:
         logging.fatal("Incorrect flag!")
 
-    # logging.info(email_uid + ':' + put_or_quit + ':' + flag)
     mail.select(folder, readonly=False)
-    logging.info("In edit_flag_modified")
-    logging.info(email_uid)
     typ, data = mail.uid('STORE', email_uid, put_or_quit + 'FLAGS', flag)
-    logging.info(data)
     if typ != 'OK':
+        logging.info(email_uid + ':' + put_or_quit + ':' + flag)
+        logging.info(data)
         logging.error("Failed to apply " + str(put_or_quit) + "FLAGS " + flag)
-    mail.select(folder, readonly=False)
+    # mail.select(folder, readonly=False)
 
 
 def get_folders(mail):
@@ -137,7 +132,8 @@ def get_folders(mail):
     return result
 
 
-def add_message_to_folder(mail, uid, destination_folder):
+def add_message_to_folder(mail, uid, origin_folder, destination_folder):
+    mail.select(origin_folder, readonly=False)
     result = mail.uid('COPY', uid, destination_folder)
     if result != "OK":
         logging.error("Failed to move message to folder")

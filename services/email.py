@@ -1,12 +1,15 @@
-from commands.email import send_msg
-import repository.emails as email_repo
+from utils.telegram import send_msg
 import repository.repository as repository
 from config.loadConfig import get_config
 import utils.imap as imap_util
 import logging
 import schedule
 from repository.repository import get_dbc
-from commands import get_bot
+from services import get_bot
+
+
+
+Emails = dict()
 
 
 def init_email_service():
@@ -17,12 +20,12 @@ def init_email_service():
 
     for u in users:
         for a in u.accounts:
-            email_repo.add_email_server(a.username, EmailService(u.id, a.username, a.protocol, {'inbox': None}))
-            email_repo.get_emails_servers()[a.username].schedule(get_config().default_refresh_inbox)
-            email_repo.get_emails_servers()[a.username].check('inbox')
+            add_email_server(a.username, EmailService(u.id, a.username, a.protocol, {'inbox': None}))
+            get_emails_servers()[a.username].schedule(get_config().default_refresh_inbox)
+            get_emails_servers()[a.username].check('inbox')
 
 
-class EmailServer:
+class EmailService:
     def __init__(self, id_user, email, protocol, folder_last_message_uid):
         self.__user = id_user
         self.__email = email
@@ -66,7 +69,7 @@ class EmailServer:
                  self.__protocol)
 
     def read_email_from_gmail(self, folder):
-        uids, err = imap_util.get_uid_list(self.mail, 'inbox')
+        uids, err = self.__get_uid_list(folder)
         logging.info("Emails in folder: " + str(len(uids)))
         if len(uids) < 1:
             return
@@ -82,7 +85,8 @@ class EmailServer:
             uids_truncated.append(uid)
 
         for uid in reversed(uids_truncated):
-            send_msg(get_bot(), self.__user, self.__email, folder, uid)
+            msg = self.get_email_by_uid(folder, uid)
+            send_msg(get_bot(), self.__user, self.__email, folder, uid, msg)
         self.folder_last_message_uid[folder] = most_recent_uid
 
     def mark_as_read(self, folder, uid, mark_as_read=True):
@@ -108,11 +112,11 @@ class EmailServer:
             status = -1
         return True if status == "OK" else False
 
-    def add_to_folder(self, uid, folder):
+    def add_to_folder(self, uid, from_folder, to_folder):
         if not self.__check_alive():
             self.__connect()
         try:
-            imap_util.add_message_to_folder(self.mail, uid, folder)
+            imap_util.add_message_to_folder(self.mail, uid, from_folder, to_folder)
         except:
             logging.error("Failed adding to folder")
 
@@ -129,3 +133,14 @@ class EmailServer:
         if not self.__check_alive():
             self.__connect()
         return imap_util.get_folders(self.mail)
+
+
+def get_emails_servers():
+    return Emails
+
+def get_email_server(inp):
+    return Emails[inp]
+
+
+def add_email_server(key, value):
+    Emails[key] = value

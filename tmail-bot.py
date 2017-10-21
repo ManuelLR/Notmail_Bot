@@ -1,9 +1,10 @@
 import logging
 from telegram.ext import Updater
 import click  # http://click.pocoo.org/6/
-import services.email as email_service
+from services.email import init_email_service
 from utils.scheduler import init_scheduler
-from commands import load_dispatcher, set_bot
+from commands import load_dispatcher
+from services import set_bot
 from config.loadConfig import Config, get_config, set_config
 from repository.repository import DBC, set_dbc
 
@@ -51,9 +52,9 @@ def init(config_path, token, admin_user_id, admin_username, db_path, refresh_inb
     set_bot(updater.bot)
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_polling(timeout=15, read_latency=6)
     logging.error("Bot started")
-    email_service.init_email_service()
+    init_email_service()
 
     # Run the bot until the user presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT

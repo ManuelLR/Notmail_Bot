@@ -11,5 +11,5 @@ services:
       - type: bind
         source: ./static
         target: /opt/app/static
-    environment:
-      - lol=1
+    env_file:
+      - .env

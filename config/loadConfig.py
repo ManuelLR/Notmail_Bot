@@ -25,21 +25,31 @@ global_config = None
 
 
 class Config:
+    def __init_empty_vars(self):
+        self.telegram_token = None
+        self.telegram_admin_user_id = None
+        self.telegram_admin_username = None
+        self.default_refresh_inbox = None
+        self.log_path = None
+        self.db_path = None
+        self.log_level = None
+
     def __init__(self):
+        self.__init_empty_vars()
         # ========  Telegram
         self.__set_telegram_token(os.getenv('TELEGRAM_TOKEN', ""))
         self.__set_telegram_admin_user_id(os.getenv('TELEGRAM_ADMIN_USER_ID', ""))
         self.__set_telegram_admin_username(os.getenv('TELEGRAM_ADMIN_USERNAME', ""))
 
         # ========  Database
-        self.__set_db_path(os.getenv('TMAIL_DB_PATH', os.path.join("config", "tmail-bot.json")))
+        self.__set_db_path(os.getenv('TMAIL_DB_PATH', os.path.join("config", "notmail_bot.json")))
 
         # ========  Email
         self.__set_default_refresh_inbox(os.getenv('TMAIL_DEFAULT_REFRESH_TIME', 4 * 60))  # 4 minutos
 
         # ========  Log
         self.__set_log_level(os.getenv('TMAIL_LOG_LEVEL', "INFO"))
-        self.__set_log_path(os.getenv('TMAIL_LOG_PATH', os.path.join("config", "tmail-bot.log")))
+        self.__set_log_path(os.getenv('TMAIL_LOG_PATH', None))
 
     def load_config_file(self, path):
         if not is_path_exists_or_creatable_portable(path):
@@ -69,7 +79,6 @@ class Config:
 
         self.__set_log_level(self.__lov(log_level, self.log_level))
         self.__set_log_path(self.__lov(log_path, self.log_path))
-
 
     @staticmethod
     def __lod(config, section, key, default_value=None):
@@ -119,7 +128,7 @@ class Config:
 
     def __set_log_path(self, inp):
         if not is_path_exists_or_creatable_portable(inp):
-            raise AssertionError
+            return
         self.log_path = inp
 
     def __set_db_path(self, inp):

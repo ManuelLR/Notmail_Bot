@@ -50,9 +50,10 @@ def init(config_path, token, admin_user_id, admin_username, db_path, refresh_inb
 
     logger = logging.getLogger()
 
-    fileHandler = logging.FileHandler(get_config().log_path)
-    fileHandler.setFormatter(log_formatter)
-    logger.addHandler(fileHandler)
+    if get_config().log_path is not None:
+        fileHandler = logging.FileHandler(get_config().log_path)
+        fileHandler.setFormatter(log_formatter)
+        logger.addHandler(fileHandler)
 
     consoleHandler = logging.StreamHandler()
     consoleHandler.setFormatter(log_formatter)

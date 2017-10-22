@@ -19,7 +19,9 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from commands.generic import start, help, error, button
 from commands.email import view_email, view_detailed_email, mark_read_email, mark_unread_email,\
     help_email, archive_email, label_list_email, delete_email
-from commands.account import account_options, account_servers
+from commands.account import account_options, account_servers, add_gmail_account, add_outlook_account,\
+    add_other_account
+
 
 def load_dispatcher(dispatcher):
     dispatcher.add_handler(CommandHandler('start', start))
@@ -37,12 +39,14 @@ def load_dispatcher(dispatcher):
 
     dispatcher.add_handler(CallbackQueryHandler(help_email, pattern="(\/email\/help)"))
 
-
     dispatcher.add_handler(CommandHandler('list_folders', help))
 
     # ACCOUNTS
     dispatcher.add_handler(CallbackQueryHandler(account_options, pattern="(\/account\/options)"))
-    dispatcher.add_handler(CallbackQueryHandler(account_servers, pattern="(\/account\/add\/servers)"))
+    dispatcher.add_handler(CallbackQueryHandler(account_servers, pattern="(\/account\/add\/servers)$"))
+    dispatcher.add_handler(CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)"))
+    dispatcher.add_handler(CallbackQueryHandler(add_outlook_account, pattern="(\/account\/add\/servers\/outlook)"))
+    dispatcher.add_handler(CallbackQueryHandler(add_other_account, pattern="(\/account\/add\/servers\/other)"))
 
     dispatcher.add_error_handler(error)
 

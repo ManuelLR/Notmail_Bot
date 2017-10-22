@@ -110,3 +110,6 @@ ENV/
 config/tmail-bot.json
 config/tmail-bot.log
 config/myconfig.ini
+
+config/notmail_bot.json
+config/notmail_bot.log

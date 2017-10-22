@@ -35,15 +35,27 @@ def account_options(bot, update):
 
 def account_servers(bot, update):
     query = update.callback_query
-
-    keyboard = [["GMAIL"],
-                ["OUTLOOK - (NOT AVAILABLE)"],
-                ["OTHER - (NOT AVAILABLE)"]]
+    keyboard = [[InlineKeyboardButton("GMAIL", callback_data='/account/add/servers/gmail')],
+                [InlineKeyboardButton("OUTLOOK - (NOT AVAILABLE)", callback_data='/account/add/servers/outlook')],
+                [InlineKeyboardButton("OTHER - (NOT AVAILABLE)", callback_data='/account/add/servers/other')]]
 
     # [InlineKeyboardButton("Accounts", callback_data='/account/options')]]
 
-    reply_markup = ReplyKeyboardMarkup(keyboard)
-    reply_markup.one_time_keyboard = True
+    reply_markup = InlineKeyboardMarkup(keyboard)
 
     query.message.reply_text('On which server do you want to add the Account?', reply_markup=reply_markup)
     logging.debug(query.message.chat_id)
+
+
+def add_gmail_account(bot, update):
+    pass
+
+
+def add_outlook_account(bot, update):
+    query = update.callback_query
+    query.message.reply_text('Option not available yet')
+
+
+def add_other_account(bot, update):
+    query = update.callback_query
+    query.message.reply_text('Option not available yet')

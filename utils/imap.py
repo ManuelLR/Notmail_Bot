@@ -78,8 +78,8 @@ class Folder:
         self.name = name
 
 
-def connect(smtp_server, smtp_port, email, password):
-    mail = imaplib.IMAP4_SSL(smtp_server, smtp_port)
+def connect(imap_server, imap_port, email, password):
+    mail = imaplib.IMAP4_SSL(imap_server, imap_port)
     mail.login(email, password)
     mail.user = email
     return mail

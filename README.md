@@ -1,4 +1,4 @@
-**WORK IN PROGRESS**
+**_WORK IN PROGRESS_**
 
 # Notmail Bot
 > Telegram bot that acts as an email client.
@@ -14,25 +14,23 @@ _Work in progress_
 - Compatible with IMAP protocol. (More in the future).
 - Read email on Telegram, mark as read/unread, archive/delete and much more.
 
-
-# How to use Notmail
-You can launch it with python or run inside a docker container (**recomended**). But first we need to know some data.
-
-## Bot variables
+# Basic configuration
 First of all, we need to know our `username` and the `bot_token`. The `username` could be configure in your Telegram app settings (also known as `alias`). To get the`bot_token` is necessary to speak with the [@BotFather](https://telegram.me/BotFather) and introduce the `/newbot` command. It will ask all necesary data and finally, it will give to you the `bot_token` also called `API Token`.
 
-## Launch
+# Launch
 We can launch in several ways:
 - [Docker Compose](./README.md#docker-compose) **(recomended)**
 - [Docker](./README.md#docker)
 - [Python](./README.md#python)
+
 ### Docker Compose
 To use [docker-compose](https://docs.docker.com/compose/overview/) you need to install on your computer [Docker-CE](https://docs.docker.com/) and [Docker-compose](https://docs.docker.com/compose/install/). 
 
-After install it, you only need to edit the enviroments values in your computer's file [docker-compose.yml](./docker-compose.yml) replacing the data of the previous section.
+Before running it you need to enter the variables in the new file called `.env`.
 
 ```
 cp .example.env .env
+nano .env
 ```
 
 Finally, we execute the next command and can start to talk with the bot:
@@ -44,10 +42,26 @@ docker-compose up -d
 If we update the code, you only need to update it (`git pull`) and relaunch docker compose with the following command:
 
 ```
+git pull
 docker-compose up -d --build
 ```
 
-### Without docker
+### Docker
+
+```bash
+sudo docker build -t notmail_bot .
+sudo docker run -d --name Notmail_bot \
+    --restart always \
+    --env-file .env \
+    notmail_bot
+```
+
+
+### Python
+```bash
+pip install -r requirements.txt
+python notmail_bot.py --config_path config/my_config.ini
+```
 
 
 # License

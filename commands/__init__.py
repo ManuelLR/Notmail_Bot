@@ -14,13 +14,14 @@
 #
 #     You should have received a copy of the GNU General Public License
 #     along with Notmail Bot.  If not, see <http:#www.gnu.org/licenses/>.
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, ConversationHandler, MessageHandler, \
+    RegexHandler, Filters
 
 from commands.generic import start, help, error, button
 from commands.email import view_email, view_detailed_email, mark_read_email, mark_unread_email,\
     help_email, archive_email, label_list_email, delete_email
 from commands.account import account_options, account_servers, add_gmail_account, add_outlook_account,\
-    add_other_account
+    add_other_account, add_username_account, add_password_account, add_refresh_time_account, cancel
 
 
 def load_dispatcher(dispatcher):
@@ -44,9 +45,27 @@ def load_dispatcher(dispatcher):
     # ACCOUNTS
     dispatcher.add_handler(CallbackQueryHandler(account_options, pattern="(\/account\/options)"))
     dispatcher.add_handler(CallbackQueryHandler(account_servers, pattern="(\/account\/add\/servers)$"))
-    dispatcher.add_handler(CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)"))
-    dispatcher.add_handler(CallbackQueryHandler(add_outlook_account, pattern="(\/account\/add\/servers\/outlook)"))
-    dispatcher.add_handler(CallbackQueryHandler(add_other_account, pattern="(\/account\/add\/servers\/other)"))
+    # dispatcher.add_handler(CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)"))
+    # dispatcher.add_handler(CallbackQueryHandler(add_outlook_account, pattern="(\/account\/add\/servers\/outlook)"))
+    # dispatcher.add_handler(CallbackQueryHandler(add_other_account, pattern="(\/account\/add\/servers\/other)"))
+
+    ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
+
+    conv_gmail_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)")],
+
+        states={
+            ACCOUNT: [RegexHandler('^.*?@.*?\..*$', add_username_account)],
+
+            PASSWORD: [MessageHandler(Filters.text, add_password_account)],
+
+            REFRESH_TIME: [MessageHandler(Filters.text, add_refresh_time_account)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dispatcher.add_handler(conv_gmail_handler)
 
     dispatcher.add_error_handler(error)
 

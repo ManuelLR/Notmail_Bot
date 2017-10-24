@@ -14,9 +14,15 @@
 #
 #     You should have received a copy of the GNU General Public License
 #     along with Notmail Bot.  If not, see <http:#www.gnu.org/licenses/>.
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
-import logging
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ConversationHandler
+from repository.repository import DBC
+from repository.account import Account
 
+import logging
+import os
+
+ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
 
 def account_options(bot, update):
     query = update.callback_query
@@ -48,7 +54,22 @@ def account_servers(bot, update):
 
 
 def add_gmail_account(bot, update):
-    pass
+    query = update.callback_query
+
+    db = DBC()
+    email_server = db.search_email_server('GMAIL', 'IMAP')
+    account = Account('GMAIL', None, None, email_server.host, email_server.port, email_server.protocol, None)
+
+    try:
+        user = db.search_user(str(query.message.chat_id))
+    except:
+        user = db.insert_user(str(query.message.chat_id), [])
+    db.add_account_to_user(user, account)
+
+    query.message.reply_text('Type your email address:')
+    logging.debug(query.message.chat_id)
+
+    return ACCOUNT
 
 
 def add_outlook_account(bot, update):
@@ -59,3 +80,48 @@ def add_outlook_account(bot, update):
 def add_other_account(bot, update):
     query = update.callback_query
     query.message.reply_text('Option not available yet')
+
+
+def add_username_account(bot, update):
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_accounts_of_user(user)[-1] #We get the last element
+    account.username = update.message.text
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Type your password:')
+
+    return PASSWORD
+
+
+def add_password_account(bot, update):
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_accounts_of_user(user)[-1]  # We get the last element
+    account.password = update.message.text
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Type your desired refresh_time in seconds (type 0 to set Default):')
+
+    return REFRESH_TIME
+
+
+def add_refresh_time_account(bot, update):
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_accounts_of_user(user)[-1]  # We get the last element
+    if update.message.text != 0:
+        account.refresh_time = int(update.message.text)
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Great! Your account has been saved.')
+
+    return ConversationHandler.END
+
+
+def cancel(bot, update):
+    user = update.message.from_user
+    logging.info("User %s canceled the conversation." % user.first_name)
+    update.message.reply_text('Bye! I hope we can talk again some day.')
+
+    return ConversationHandler.END

@@ -14,7 +14,7 @@
 #
 #     You should have received a copy of the GNU General Public License
 #     along with Notmail Bot.  If not, see <http:#www.gnu.org/licenses/>.
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ChatAction
 import logging
 from services.email import get_email_server
 from utils.telegram import emojis, load_main_view
@@ -24,21 +24,25 @@ folders_by_page = 8
 
 def view_detailed_email(bot, update):
     query = update.callback_query
+    try:
+        data = filter_callback_data(update, "/email/view", 3)
+        user_email = data[0]
+        msg_uid = bytes(data[1], 'utf-8')
+        folder = data[2]
 
-    data = filter_callback_data(update, "/email/view", 3)
-    user_email = data[0]
-    msg_uid = bytes(data[1], 'utf-8')
-    folder = data[2]
+        msg = get_email_server(user_email).get_email_by_uid(folder, msg_uid)
+        message = msg.get_body()
 
-    msg = get_email_server(user_email).get_email_by_uid(folder, msg_uid)
-    message = msg.get_body()
+        response, reply_markup = load_main_view(msg, back="details")
 
-    response, reply_markup = load_main_view(user_email, msg_uid, get_email_server(user_email).get_email_by_uid(folder, msg_uid), folder, back="details")
-
-    bot.edit_message_text(text=message,
-                          chat_id=query.message.chat_id,
-                          message_id=query.message.message_id,
-                          reply_markup=reply_markup)
+        bot.edit_message_text(text=message,
+                              chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              reply_markup=reply_markup)
+        query.answer()
+    except:
+        logging.error("view_detailed_email error")
+        query.answer(text="view_detailed_email error")
 
 
 def view_email(bot, update):
@@ -49,13 +53,14 @@ def view_email(bot, update):
     msg_uid = bytes(data[1], 'utf-8')
     folder = data[2]
 
-    response, reply_markup = load_main_view(email, msg_uid, get_email_server(email).get_email_by_uid(folder, msg_uid), folder)
+    response, reply_markup = load_main_view(get_email_server(email).get_email_by_uid(folder, msg_uid))
 
     bot.edit_message_text(parse_mode="Markdown",
                           text=response,
                           chat_id=query.message.chat_id,
                           message_id=query.message.message_id,
                           reply_markup=reply_markup)
+    query.answer()
 
 
 def mark_read_email(bot, update):
@@ -68,15 +73,17 @@ def mark_read_email(bot, update):
 
         get_email_server(user_email).mark_as_read(folder, msg_uid, True)
 
-        response, reply_markup = load_main_view(user_email, msg_uid, get_email_server(user_email).get_email_by_uid(folder, msg_uid),folder)
+        response, reply_markup = load_main_view(get_email_server(user_email).get_email_by_uid(folder, msg_uid))
 
         bot.edit_message_text(parse_mode="Markdown",
                               text=response + "--",
                               chat_id=query.message.chat_id,
                               message_id=query.message.message_id,
                               reply_markup=reply_markup)
+        query.answer()
     except:
         logging.error("mark_read_email error")
+        query.answer(text="mark_read_email error")
 
 
 def mark_unread_email(bot, update):
@@ -88,19 +95,20 @@ def mark_unread_email(bot, update):
         folder = data[2]
         get_email_server(user_email).mark_as_read(folder, msg_uid, False)
 
-        response, reply_markup = load_main_view(user_email, msg_uid, get_email_server(user_email).get_email_by_uid(folder, msg_uid), folder)
+        response, reply_markup = load_main_view(get_email_server(user_email).get_email_by_uid(folder, msg_uid))
         bot.edit_message_text(parse_mode="Markdown",
                               text=response + "++",
                               chat_id=query.message.chat_id,
                               message_id=query.message.message_id,
                               reply_markup=reply_markup)
+        query.answer()
     except:
         logging.error("mark_unread_email error")
+        query.answer(text="mark_unread_email error")
 
 
 def archive_email(bot, update):
     query = update.callback_query
-
     try:
         data = filter_callback_data(update, "/email/archive", 3)
         user_email = data[0]
@@ -113,14 +121,15 @@ def archive_email(bot, update):
                               text=previous_response+"\n\n"+emojis["archive"]+"Archived! "+emojis["archive"],
                               chat_id=query.message.chat_id,
                               message_id=query.message.message_id)
+        query.answer()
     except Exception as e:
         logging.error(e)
         logging.error("archive_email error")
+        query.answer(text="archive_email error")
 
 
 def label_list_email(bot, update):
     query = update.callback_query
-
     try:
         data = filter_callback_data(update, "/email/label_l", 4)
         user_email = data[1]
@@ -154,23 +163,21 @@ def label_list_email(bot, update):
                 InlineKeyboardButton(folders[n+1].name, callback_data='/email/label' + common_sufix),
                          ])
 
-        response, reply_markup = load_main_view(user_email,
-                                                msg_uid,
-                                                get_email_server(user_email).get_email_by_uid(folder, msg_uid),
-                                                folder)
+        response, reply_markup = load_main_view(get_email_server(user_email).get_email_by_uid(folder, msg_uid))
         bot.edit_message_text(parse_mode="Markdown",
                               text=response + "+-",
                               chat_id=query.message.chat_id,
                               message_id=query.message.message_id,
                               reply_markup=InlineKeyboardMarkup(body))
+        query.answer()
     except Exception as e:
         logging.error(e)
         logging.error("label_list_email error")
+        query.answer(text="label_list_email error")
 
 
 def delete_email(bot, update):
     query = update.callback_query
-
     try:
         data = filter_callback_data(update, "/email/delete", 3)
         user_email = data[0]
@@ -186,9 +193,12 @@ def delete_email(bot, update):
                               text=previous_response+"\n\n"+emojis["delete"]+"Deleted! "+emojis["delete"],
                               chat_id=query.message.chat_id,
                               message_id=query.message.message_id)
+        query.answer()
     except Exception as e:
         logging.error(e)
         logging.error("delete_email error")
+        query.answer(text="delete_email error")
+
 
 
 def help_email(bot, update):

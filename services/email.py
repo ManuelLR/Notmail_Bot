@@ -32,16 +32,15 @@ def init_email_service():
 
     for u in users:
         for a in u.accounts:
-            add_email_server(a.username, EmailService(u.id, a.username, a.protocol, {'inbox': None}))
+            add_email_server(a.username, EmailService(u.id, a, {'inbox': None}))
             get_email_server(a.username).schedule(a.refresh_time)
             get_email_server(a.username).check('inbox')
 
 
 class EmailService:
-    def __init__(self, id_user, email, protocol, folder_last_message_uid):
+    def __init__(self, id_user, account, folder_last_message_uid):
         self.__user = id_user
-        self.__email = email
-        self.__protocol = protocol
+        self.__account = account
 
         self.__connect()
 
@@ -56,19 +55,20 @@ class EmailService:
                 continue
             self.folder_last_message_uid[folder] = int(uids[-2])  # for debug
             # self.folder_last_message_uid[folder] = int(uids[-1])
+            # self.folder_last_message_uid[folder] = None  # Initially empty email
 
     def __connect(self):
         logging.debug("Reconnecting account: " + self.__user)
-        db = repository.DBC(get_config().db_path)
-        account = db.get_accounts_of_user(db.search_user(get_config().telegram_admin_user_id))[0]
-        email_server = db.search_email_server(account.name, self.__protocol)
+        # db = repository.DBC(get_config().db_path)
+        # account = db.get_accounts_of_user(db.search_user(get_config().telegram_admin_user_id))[0]
+        # email_server = db.search_email_server(self.__nameServer, self.__protocol)
         # message_content = email_repo.get_message_content(self.__user, self.__email)
-        self.mail = imap_util.connect(email_server.host, email_server.port,
-                                      account.username, account.password)
+        self.mail = imap_util.connect(self.__account.host, self.__account.port,
+                                      self.__account.username, self.__account.password)
         self.mail.select('inbox')
 
     def check(self, folder):
-        logging.debug("Checking account: " + self.__email + ":/" + folder)
+        logging.debug("Checking account: " + self.__account.username + ":/" + folder)
         if not self.__check_alive():
             self.__connect()
 
@@ -77,8 +77,8 @@ class EmailService:
     def schedule(self, time_seconds):
         schedule.every(time_seconds).seconds.do(self.check, 'inbox')\
             .tag('checkemail',
-                 self.__email.partition("@")[0],
-                 self.__protocol)
+                 self.__account.username.partition("@")[0],
+                 self.__account.protocol)
 
     def read_email_from_gmail(self, folder):
         uids, err = self.__get_uid_list(folder)
@@ -92,8 +92,11 @@ class EmailService:
 
         uids_truncated = []
         for uid in reversed(uids):
-            if int(uid) <= self.folder_last_message_uid[folder]:
-                break
+            try:
+                if int(uid) <= self.folder_last_message_uid[folder]:
+                    break
+            except:
+                pass
             uids_truncated.append(uid)
 
         for uid in reversed(uids_truncated):

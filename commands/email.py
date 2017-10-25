@@ -210,7 +210,7 @@ def help_email(bot, update):
     text += emojis["reply"] + " reply to the message\n"
     text += emojis["remember"] + " remember in the future\n"
     text += emojis["label"] + " manage labels\n"
-    text += emojis["is_read"] + "/" + emojis["is_unread"] + " mark as unread/read\n"
+    text += emojis["mark_as_unread"] + "/" + emojis["mark_as_read"] + " mark as unread/read\n"
     bot.send_message(chat_id=update.effective_chat.id, parse_mode="Markdown",
                                 text=text)
 

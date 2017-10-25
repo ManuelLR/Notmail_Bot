@@ -22,8 +22,8 @@ emojis = {
     "back": "🔙",
     "help": "❓",
     "link": "🔗",  # "🌐",
-    "is_read": "👁",
-    "is_unread": "❗️",
+    "mark_as_unread": "❗️",
+    "mark_as_read": "👁",
     "remember": "⏰",
     "delete": "🗑",
     "details": "🔎",
@@ -55,9 +55,9 @@ def load_main_view(msg, back=None):
     common_sufix = '/' + msg.email + '/' + msg.uid.decode() + '/' + msg.folders[0]
 
     if msg.get_flag("Seen"):
-        read_button = InlineKeyboardButton(emojis["is_read"], callback_data='/email/mark_unread' + common_sufix)
+        read_button = InlineKeyboardButton(emojis["mark_as_unread"], callback_data='/email/mark_unread' + common_sufix)
     else:
-        read_button = InlineKeyboardButton(emojis["is_unread"], callback_data='/email/mark_read' + common_sufix)
+        read_button = InlineKeyboardButton(emojis["mark_as_read"], callback_data='/email/mark_read' + common_sufix)
 
     if back == "details":
         details_button = InlineKeyboardButton(emojis["back"], callback_data='/email/back' + common_sufix)

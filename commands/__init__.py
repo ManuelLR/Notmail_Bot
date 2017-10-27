@@ -46,9 +46,6 @@ def load_dispatcher(dispatcher):
     # ACCOUNTS
     dispatcher.add_handler(CallbackQueryHandler(account_options, pattern="(\/account\/options)"))
     dispatcher.add_handler(CallbackQueryHandler(account_servers, pattern="(\/account\/add\/servers)$"))
-    # dispatcher.add_handler(CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)"))
-    # dispatcher.add_handler(CallbackQueryHandler(add_outlook_account, pattern="(\/account\/add\/servers\/outlook)"))
-    # dispatcher.add_handler(CallbackQueryHandler(add_other_account, pattern="(\/account\/add\/servers\/other)"))
 
     ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
 

@@ -31,7 +31,10 @@ def start(bot, update):
 
 
 def help(bot, update):
-    update.message.reply_text("Use /start to test this bot.")
+    update.message.reply_text("With this bot you can say goodbye to your ugly email's clients. Feel free of use your "
+                              "favorites emails account now in Telegram too!"
+                              "\n\nUse /start to start to use this bot!!"
+                              "\n\nYou can see the help about Email's buttons at the ❓ option")
 
 
 def error(bot, update, error):

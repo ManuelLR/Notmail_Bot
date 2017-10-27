@@ -20,7 +20,6 @@ from repository.repository import DBC
 from repository.account import Account
 
 import logging
-import os
 
 ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
 
@@ -57,14 +56,11 @@ def add_gmail_account(bot, update):
     query = update.callback_query
 
     db = DBC()
-    email_server = db.search_email_server('GMAIL', 'IMAP')
-    account = Account('GMAIL', None, None, email_server.host, email_server.port, email_server.protocol, None)
 
     try:
-        user = db.search_user(str(query.message.chat_id))
+        db.search_user(str(query.message.chat_id))
     except:
-        user = db.insert_user(str(query.message.chat_id), [])
-    db.add_account_to_user(user, account)
+        db.insert_user(str(query.message.chat_id), [])
 
     query.message.reply_text('Type your email address:')
     logging.debug(query.message.chat_id)
@@ -82,37 +78,35 @@ def add_other_account(bot, update):
     query.message.reply_text('Option not available yet')
 
 
-def add_username_account(bot, update):
+def add_gmail_username_account(bot, update, user_data):
     db = DBC()
-    user = db.search_user(str(update.message.chat_id))
-    account = db.get_accounts_of_user(user)[-1] #We get the last element
+    email_server = db.search_email_server('GMAIL', 'IMAP')
+    account = Account('GMAIL', None, None, email_server.host, email_server.port, email_server.protocol, None)
     account.username = update.message.text
-    db.update_account_of_user(user, account)
+    user_data['account'] = account
 
     update.message.reply_text('Type your password:')
 
     return PASSWORD
 
 
-def add_password_account(bot, update):
-    db = DBC()
-    user = db.search_user(str(update.message.chat_id))
-    account = db.get_accounts_of_user(user)[-1]  # We get the last element
+def add_password_account(bot, update, user_data):
+    account = user_data['account']
     account.password = update.message.text
-    db.update_account_of_user(user, account)
+    user_data['account'] = account
 
     update.message.reply_text('Type your desired refresh_time in seconds (type 0 to set Default):')
 
     return REFRESH_TIME
 
 
-def add_refresh_time_account(bot, update):
+def add_refresh_time_account(bot, update, user_data):
     db = DBC()
     user = db.search_user(str(update.message.chat_id))
-    account = db.get_accounts_of_user(user)[-1]  # We get the last element
-    if update.message.text != 0:
+    account = user_data['account']
+    if int(update.message.text) != 0:
         account.refresh_time = int(update.message.text)
-    db.update_account_of_user(user, account)
+    db.add_account_to_user(user, account)
 
     update.message.reply_text('Great! Your account has been saved.')
 
@@ -122,6 +116,6 @@ def add_refresh_time_account(bot, update):
 def cancel(bot, update):
     user = update.message.from_user
     logging.info("User %s canceled the conversation." % user.first_name)
-    update.message.reply_text('Bye! I hope we can talk again some day.')
+    update.message.reply_text('Operation cancelled, you have stopped the Add Account process.')
 
     return ConversationHandler.END

@@ -21,7 +21,8 @@ from commands.generic import start, help, error, button
 from commands.email import view_email, view_detailed_email, mark_read_email, mark_unread_email,\
     help_email, archive_email, label_list_email, delete_email
 from commands.account import account_options, account_servers, add_gmail_account, add_outlook_account,\
-    add_other_account, add_username_account, add_password_account, add_refresh_time_account, cancel
+    add_other_account, add_gmail_username_account, add_password_account, add_refresh_time_account, \
+    cancel
 
 
 def load_dispatcher(dispatcher):
@@ -55,11 +56,11 @@ def load_dispatcher(dispatcher):
         entry_points=[CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)")],
 
         states={
-            ACCOUNT: [RegexHandler('^.*?@.*?\..*$', add_username_account)],
+            ACCOUNT: [RegexHandler('^.*?@.*?\..*$', add_gmail_username_account, pass_user_data=True)],
 
-            PASSWORD: [MessageHandler(Filters.text, add_password_account)],
+            PASSWORD: [MessageHandler(Filters.text, add_password_account, pass_user_data=True)],
 
-            REFRESH_TIME: [MessageHandler(Filters.text, add_refresh_time_account)]
+            REFRESH_TIME: [MessageHandler(Filters.text, add_refresh_time_account, pass_user_data=True)]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]

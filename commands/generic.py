@@ -34,7 +34,14 @@ def help(bot, update):
     update.message.reply_text("With this bot you can say goodbye to your ugly email's clients. Feel free of use your "
                               "favorites emails account now in Telegram too!"
                               "\n\nUse /start to start to use this bot!!"
-                              "\n\nYou can see the help about Email's buttons at the ❓ option")
+                              "\n\nYou can see the help about Email's buttons at the ❓ option."
+                              "\n\nFeatures:"
+                              "\n ✔ Auto check email account and notify news."
+                              "\n ✔️ Friendly interface."
+                              "\n ✔️ Multiple email accounts."
+                              "\n ✔️ Compatible with IMAP protocol. (More in the future)."    
+                              "\n ✔️ Read email on Telegram, mark as read/unread, archive/delete and much more."
+                              "\n\nYou can visit or contribute the project at: https://github.com/ManuelLR/Notmail_Bot")
 
 
 def error(bot, update, error):

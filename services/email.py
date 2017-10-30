@@ -83,6 +83,9 @@ class EmailService:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             f_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
             logging.error(exc_type, f_name, exc_tb.tb_lineno)
+            get_bot().send_message(chat_id=self.__user, parse_mode="Markdown",
+                             text="Something go really bad. You couldn't be notify of news emails on account "
+                                  + self.__account.username)
 
     def schedule(self, time_seconds):
         schedule.every(time_seconds).seconds.do(self.check, 'inbox')\

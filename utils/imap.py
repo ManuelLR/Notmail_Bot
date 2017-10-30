@@ -38,8 +38,12 @@ class Message:
         res = ""
         for input_mod, encoding in decode_header(input):
             try:
-                if isinstance(input_mod, bytes):
+                if isinstance(input_mod, bytes) and encoding is None:
                     result = input_mod.decode()
+                elif isinstance(input_mod, bytes) and encoding is not None:
+                    result = input_mod.decode(encoding=encoding)
+                elif isinstance(input_mod, str):
+                    result = input_mod
                 else:
                     result = input_mod.decode(encoding)
             except AttributeError as ae:
@@ -65,9 +69,13 @@ class Message:
         if maintype == 'multipart':
             for part in self.msg.get_payload():
                 if part.get_content_maintype() == format:
-                    return part.get_payload(decode=True).decode("utf-8")
+                    encode = part.get_content_charset(failobj="utf-8")
+                    text_decode = part.get_payload(decode=True).decode(encoding=encode)
+                    return text_decode
         elif maintype == 'text':
-            return self.msg.get_payload()
+            part = self.msg.get_payload()
+            encode = part.get_content_charset(failobj="utf-8")
+            return part.get_payload(decode=True).decode(encoding=encode)
 
 
 class Folder:

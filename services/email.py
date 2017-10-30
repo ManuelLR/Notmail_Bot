@@ -22,6 +22,8 @@ import logging
 import schedule
 from repository.repository import get_dbc
 from services import get_bot, get_email_server, add_email_server
+import os
+import sys
 
 
 def init_email_service():
@@ -45,6 +47,7 @@ class EmailService:
         self.__connect()
 
         self.folder_last_message_uid = dict()
+
         for folder, uid in folder_last_message_uid.items():
             if uid is not None:
                 self.folder_last_message_uid[folder] = uid
@@ -69,10 +72,17 @@ class EmailService:
 
     def check(self, folder):
         logging.debug("Checking account: " + self.__account.username + ":/" + folder)
-        if not self.__check_alive():
-            self.__connect()
+        try:
+            if not self.__check_alive():
+                self.__connect()
 
-        self.read_email_from_gmail(folder)
+            self.read_email_from_gmail(folder)
+        except Exception as e:
+            logging.error("Failed checkin email account")
+            logging.error(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            f_name = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            logging.error(exc_type, f_name, exc_tb.tb_lineno)
 
     def schedule(self, time_seconds):
         schedule.every(time_seconds).seconds.do(self.check, 'inbox')\

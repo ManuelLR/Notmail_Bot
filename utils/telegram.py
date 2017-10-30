@@ -79,6 +79,9 @@ def load_main_view(msg, back=None):
             #         InlineKeyboardButton(emojis["back"], callback_data='/email/back' + common_sufix),
             ], ]
 
+    if len(email_subject) > 500:
+        email_subject = email_subject[:500] + " ..."
+
     response = "*"+email_subject + "*\n[" + email_from + "]\n(_" + str(email_date)+"_)"
 
     return response, InlineKeyboardMarkup(keyboard)

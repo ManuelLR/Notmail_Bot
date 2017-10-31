@@ -69,13 +69,19 @@ class Message:
         if maintype == 'multipart':
             for part in self.msg.get_payload():
                 if part.get_content_maintype() == format:
-                    encode = part.get_content_charset(failobj="utf-8")
-                    text_decode = part.get_payload(decode=True).decode(encoding=encode)
-                    return text_decode
+                    return Message.__decode_body_from_part_message(part)
+                elif part.get_content_maintype() == 'multipart':
+                    for part_in in part.get_payload():
+                        if part_in.get_content_maintype() == format:
+                            return Message.__decode_body_from_part_message(part_in)
         elif maintype == 'text':
-            part = self.msg.get_payload()
-            encode = part.get_content_charset(failobj="utf-8")
-            return part.get_payload(decode=True).decode(encoding=encode)
+            return Message.__decode_body_from_part_message(self.msg)
+
+    @staticmethod
+    def __decode_body_from_part_message(part_msg):
+        encode = part_msg.get_content_charset(failobj="utf-8")
+        text_decode = part_msg.get_payload(decode=True).decode(encoding=encode)
+        return text_decode
 
 
 class Folder:

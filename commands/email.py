@@ -35,7 +35,7 @@ def view_detailed_email(bot, update):
 
         response, reply_markup = load_main_view(msg, back="details")
 
-        if len(message) > 4000:
+        if message != None and len(message) > 4000:
             message = message[:4000] + " ..."
 
         bot.edit_message_text(text=message,

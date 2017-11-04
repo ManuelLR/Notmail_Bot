@@ -22,7 +22,8 @@ from commands.email import view_email, view_detailed_email, mark_read_email, mar
     help_email, archive_email, label_list_email, delete_email
 from commands.account import account_options, account_servers, add_gmail_account, add_outlook_account,\
     add_other_account, add_gmail_username_account, add_password_account, add_refresh_time_account, \
-    cancel
+    cancel, modify_account, modify_password, modify_account_password, modify_password_password, \
+    modify_refresh_time, modify_account_refresh_time, modify_refresh_time_refresh_time
 
 
 def load_dispatcher(dispatcher):
@@ -46,7 +47,9 @@ def load_dispatcher(dispatcher):
     # ACCOUNTS
     dispatcher.add_handler(CallbackQueryHandler(account_options, pattern="(\/account\/options)"))
     dispatcher.add_handler(CallbackQueryHandler(account_servers, pattern="(\/account\/add\/servers)$"))
+    dispatcher.add_handler(CallbackQueryHandler(modify_account, pattern="(\/account\/modify)$"))
 
+    # ADD GMAIL ACCOUNT
     ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
 
     conv_gmail_handler = ConversationHandler(
@@ -67,3 +70,40 @@ def load_dispatcher(dispatcher):
 
     dispatcher.add_error_handler(error)
 
+    # MODIFY PASSWORD
+    ACCOUNT, PASSWORD = range(2)
+
+    conv_modify_password = ConversationHandler(
+        entry_points=[CallbackQueryHandler(modify_password, pattern="(\/account\/modify\/password)")],
+
+        states={
+            ACCOUNT: [RegexHandler('^.*?@.*?\..*$', modify_account_password, pass_user_data=True)],
+
+            PASSWORD: [MessageHandler(Filters.text, modify_password_password, pass_user_data=True)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dispatcher.add_handler(conv_modify_password)
+
+    dispatcher.add_error_handler(error)
+
+    # MODIFY REFRESH_TIME
+    ACCOUNT, REFRESH_TIME = range(2)
+
+    conv_modify_refresth_time = ConversationHandler(
+        entry_points=[CallbackQueryHandler(modify_refresh_time, pattern="(\/account\/modify\/refresh_time)")],
+
+        states={
+            ACCOUNT: [RegexHandler('^.*?@.*?\..*$', modify_account_refresh_time, pass_user_data=True)],
+
+            REFRESH_TIME: [MessageHandler(Filters.text, modify_refresh_time_refresh_time, pass_user_data=True)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dispatcher.add_handler(conv_modify_refresth_time)
+
+    dispatcher.add_error_handler(error)

@@ -20,6 +20,7 @@ import os, sys
 import email as email_lib
 from email.header import decode_header
 from bs4 import BeautifulSoup
+import re
 
 imaplib._MAXLINE = 100000
 
@@ -39,9 +40,10 @@ class Message:
         res = ""
         for input_mod, encoding in decode_header(input):
             try:
-                if isinstance(input_mod, bytes) and encoding is None:
+                is_bytes = isinstance(input_mod, bytes)
+                if is_bytes and (encoding is None or "unknown" in encoding):
                     result = input_mod.decode()
-                elif isinstance(input_mod, bytes) and encoding is not None:
+                elif is_bytes and encoding is not None:
                     result = input_mod.decode(encoding=encoding)
                 elif isinstance(input_mod, str):
                     result = input_mod
@@ -65,25 +67,41 @@ class Message:
             return False
         return bytes("\\" + property, 'utf-8') in self.flags
 
-    def get_body(self, format='text'):
+    def get_body(self):
         maintype = self.msg.get_content_maintype()
         if maintype == 'multipart':
+            html_body = None
             for part in self.msg.get_payload():
-                if part.get_content_maintype() == format:
+                if part.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
                     return Message.__decode_body_from_part_message(part)
+                elif part.get_content_maintype() == 'text' and part.get_content_subtype() == 'html':
+                    html_body = part
                 elif part.get_content_maintype() == 'multipart':
                     for part_in in part.get_payload():
-                        if part_in.get_content_maintype() == format:
+                        if part_in.get_content_maintype() == 'text' and part_in.get_content_subtype() == 'plain':
                             return Message.__decode_body_from_part_message(part_in)
+                        elif part.get_content_maintype() == 'text' and part_in.get_content_subtype() == 'html':
+                            html_body = part
+            else:
+                if html_body is not None:
+                    return Message.__decode_body_from_part_message(html_body, is_html=True)
+                else:
+                    return "😥🙃"
+
         elif maintype == 'text':
-            return Message.__decode_body_from_part_message(self.msg)
+            return Message.__decode_body_from_part_message(self.msg, is_html=self.msg.get_content_subtype()!="plain")
 
     @staticmethod
-    def __decode_body_from_part_message(part_msg):
+    def __decode_body_from_part_message(part_msg, is_html=False):
         encode = part_msg.get_content_charset(failobj="utf-8")
-        text_decode = BeautifulSoup(part_msg.get_payload(decode=True).decode(encoding=encode)).get_text()
+        if not is_html:
+            text_decode = part_msg.get_payload(decode=True).decode(encoding=encode)
+        else:
+            text_decode = BeautifulSoup(part_msg.get_payload(decode=True).decode(encoding=encode)).get_text()
 
-        return text_decode
+        res = re.sub(" ?\r?\n[\r?\n ?]+", "\n\n", text_decode.strip())
+
+        return res
 
 
 class Folder:

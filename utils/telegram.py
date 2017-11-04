@@ -83,6 +83,6 @@ def load_main_view(msg, back=None):
         email_subject = email_subject[:500] + " ..."
 
     response = "*"+email_subject + "*\n[" + email_from + "]\n\t\t_" + email_date+"_"
-    print(response)
+
     return response, InlineKeyboardMarkup(keyboard)
 

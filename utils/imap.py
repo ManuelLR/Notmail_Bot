@@ -39,9 +39,10 @@ class Message:
         res = ""
         for input_mod, encoding in decode_header(input):
             try:
-                if isinstance(input_mod, bytes) and encoding is None:
+                is_bytes = isinstance(input_mod, bytes)
+                if is_bytes and (encoding is None or "unknown" in encoding):
                     result = input_mod.decode()
-                elif isinstance(input_mod, bytes) and encoding is not None:
+                elif is_bytes and encoding is not None:
                     result = input_mod.decode(encoding=encoding)
                 elif isinstance(input_mod, str):
                     result = input_mod

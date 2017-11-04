@@ -78,9 +78,9 @@ class Message:
                     html_body = part
                 elif part.get_content_maintype() == 'multipart':
                     for part_in in part.get_payload():
-                        if part_in.get_content_maintype() == 'text' and part.get_content_subtype() == 'plain':
+                        if part_in.get_content_maintype() == 'text' and part_in.get_content_subtype() == 'plain':
                             return Message.__decode_body_from_part_message(part_in)
-                        elif part.get_content_maintype() == 'text' and part.get_content_subtype() == 'html':
+                        elif part.get_content_maintype() == 'text' and part_in.get_content_subtype() == 'html':
                             html_body = part
             else:
                 if html_body is not None:
@@ -99,7 +99,7 @@ class Message:
         else:
             text_decode = BeautifulSoup(part_msg.get_payload(decode=True).decode(encoding=encode)).get_text()
 
-        res = re.sub("\n\n+", "\n\n", text_decode.strip())
+        res = re.sub(" ?\r?\n[\r?\n ?]+", "\n\n", text_decode.strip())
 
         return res
 

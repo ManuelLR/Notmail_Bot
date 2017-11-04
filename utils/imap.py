@@ -86,13 +86,13 @@ class Message:
                 if html_body is not None:
                     return Message.__decode_body_from_part_message(html_body, is_html=True)
                 else:
-                    return "😥🙃"
+                    return "😥🙃 no compatible format found"
 
         elif maintype == 'text':
             return Message.__decode_body_from_part_message(self.msg, is_html=self.msg.get_content_subtype()!="plain")
 
     @staticmethod
-    def __decode_body_from_part_message(part_msg, is_html=False):
+    def __decode_body_from_part_message(part_msg, is_html=False, del_double_new_line=False):
         encode = part_msg.get_content_charset(failobj="utf-8")
         if not is_html:
             text_decode = part_msg.get_payload(decode=True).decode(encoding=encode)
@@ -102,7 +102,17 @@ class Message:
                 script.extract()
             text_decode = soup.get_text()
 
-        res = re.sub(" ?\r?\n[\r?\n ?]+", "\n\n", text_decode.strip())
+        if del_double_new_line:
+            # break into lines and remove leading and trailing space on each
+            lines = (line for line in text_decode.splitlines())
+#            lines = (line.strip() for line in text_decode.splitlines())
+            # break multi-headlines into a line each
+            chunks = (phrase for line in lines for phrase in line.split("  "))
+#            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            # drop blank lines
+            res = '\n'.join(chunk for chunk in chunks)
+        else:
+            res = re.sub(" ?\r?\n[\r?\n ?]+", "\n\n", text_decode.strip())
 
         return res
 

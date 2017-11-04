@@ -16,6 +16,7 @@
 #     along with Notmail Bot.  If not, see <http:#www.gnu.org/licenses/>.
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 import email as email_lib
+import time
 
 
 emojis = {
@@ -47,8 +48,7 @@ def notify_new_email(bot, id_user, msg):
 def load_main_view(msg, back=None):
     # msg = get_email_server(user_email).get_email_by_uid(folder, msg_uid)
     # a = msg.msg
-    email_date = email_lib.utils.parsedate_to_datetime(msg.msg["date"])
-
+    email_date = email_lib.utils.parsedate_to_datetime(msg.msg["date"]).strftime("%d %B %Y")
     email_from = msg.get_header('from')
     email_subject = msg.get_header('subject')
 
@@ -82,7 +82,7 @@ def load_main_view(msg, back=None):
     if len(email_subject) > 500:
         email_subject = email_subject[:500] + " ..."
 
-    response = "*"+email_subject + "*\n[" + email_from + "]\n(_" + str(email_date)+"_)"
+    response = "*"+email_subject + "*\n[" + email_from + "]\n\t\t_" + email_date+"_"
 
     return response, InlineKeyboardMarkup(keyboard)
 

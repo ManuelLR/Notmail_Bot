@@ -19,6 +19,7 @@ import logging
 import os, sys
 import email as email_lib
 from email.header import decode_header
+from bs4 import BeautifulSoup
 
 imaplib._MAXLINE = 100000
 
@@ -80,7 +81,8 @@ class Message:
     @staticmethod
     def __decode_body_from_part_message(part_msg):
         encode = part_msg.get_content_charset(failobj="utf-8")
-        text_decode = part_msg.get_payload(decode=True).decode(encoding=encode)
+        text_decode = BeautifulSoup(part_msg.get_payload(decode=True).decode(encoding=encode)).get_text()
+
         return text_decode
 
 

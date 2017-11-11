@@ -23,12 +23,12 @@ db = DBC(os.path.join('..', 'config', 'tmail-bot.json'))
 
 # Test Accounts
 
-account1 = Account('Gmail', 'test@gmail.com', 'mypass', 'test.com', 465, 'IMAP', None)
+account1 = Account('Gmail', 'test@gmail.com', 'mypass', 'test.com', 465, 'IMAP', 15)
 account2 = Account('Outlook', 'test@outlook.com', 'mypass', 'test.com', 465, 'IMAP', 25)
 accounts = [account1, account2]
 db.insert_user('123456789', accounts)
 User = db.search_user('123456789')
-account3 = Account('Gmail', 'test@gmail.com', 'mypass', 'test.com', 465, 'IMAP', None)
+account3 = Account('Gmail', 'test@gmail.com', 'mypass', 'test.com', 465, 'IMAP', 15)
 account4 = Account('Outlook', 'test@outlook.com', 'mypass', 'test.com', 465, 'IMAP', 25)
 accounts = [account3]
 db.insert_user('123456789', accounts)

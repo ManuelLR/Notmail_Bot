@@ -129,6 +129,8 @@ def modify_account(bot, update):
     logging.debug(query.message.chat_id)
 
 
+ACCOUNT, PASSWORD = range(2)
+
 def modify_password(bot, update):
     query = update.callback_query
 
@@ -138,25 +140,49 @@ def modify_password(bot, update):
 
 
 def modify_account_password(bot, update, user_data):
-    query = update.callback_query
-
     user_data['username'] = update.message.text
 
-    query.message.reply_text('Now type your new password:')
+    update.message.reply_text('Now type your new password:')
 
     return PASSWORD
 
-def modify_password_password(bot, update, user_data):
-    pass
 
+def modify_password_password(bot, update, user_data):
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_account_of_user(user, user_data['username'])
+    account.password = update.message.text
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Password modified successfully!')
+
+    return ConversationHandler.END
+
+ACCOUNT, REFRESH_TIME = range(2)
 
 def modify_refresh_time(bot, update):
-    pass
+    query = update.callback_query
+
+    query.message.reply_text('Okay. Type the email address of the account you want to modify your refresh_time:')
+
+    return ACCOUNT
 
 
 def modify_account_refresh_time(bot, update, user_data):
-    pass
+    user_data['username'] = update.message.text
+
+    update.message.reply_text('Now type your new refresh_time:')
+
+    return REFRESH_TIME
 
 
 def modify_refresh_time_refresh_time(bot, update, user_data):
-    pass
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_account_of_user(user, user_data['username'])
+    account.refresh_time = int(update.message.text)
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Refresh Time modified successfully!')
+
+    return ConversationHandler.END

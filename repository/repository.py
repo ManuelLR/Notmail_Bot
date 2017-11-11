@@ -105,6 +105,15 @@ class DBC:
         user = self.search_user(user.id)
         return user.accounts
 
+    def get_account_of_user(self, user, username):
+        user = self.search_user(user.id)
+        result = None
+        for account in user.accounts:
+            if account.username == username:
+                result = account
+                break
+        return result
+
     def add_account_to_user(self, user, account):
         user = self.search_user(user.id)
         user.add_account(account)

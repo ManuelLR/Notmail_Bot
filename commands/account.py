@@ -23,6 +23,9 @@ import logging
 
 ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
 
+
+#Account Options
+
 def account_options(bot, update):
     query = update.callback_query
 
@@ -48,6 +51,8 @@ def account_servers(bot, update):
     logging.debug(query.message.chat_id)
 
 
+# Add GMAIL Account
+
 def add_gmail_account(bot, update):
     query = update.callback_query
 
@@ -64,15 +69,21 @@ def add_gmail_account(bot, update):
     return ACCOUNT
 
 
+# Add OUTLOOK Account (Not Available Yet)
+
 def add_outlook_account(bot, update):
     query = update.callback_query
     query.message.reply_text('Option not available yet')
 
 
+# Add OTHER Account (Not Available Yet)
+
 def add_other_account(bot, update):
     query = update.callback_query
     query.message.reply_text('Option not available yet')
 
+
+# Add Account process
 
 def add_gmail_username_account(bot, update, user_data):
     db = DBC()
@@ -109,13 +120,7 @@ def add_refresh_time_account(bot, update, user_data):
     return ConversationHandler.END
 
 
-def cancel(bot, update):
-    user = update.message.from_user
-    logging.info("User %s canceled the conversation." % user.first_name)
-    update.message.reply_text('Operation cancelled, you have stopped the Account process.')
-
-    return ConversationHandler.END
-
+# Modify Account process
 
 def modify_account(bot, update):
     query = update.callback_query
@@ -128,6 +133,10 @@ def modify_account(bot, update):
     query.message.reply_text('What do you want to modify on your Accounts?', reply_markup=reply_markup)
     logging.debug(query.message.chat_id)
 
+# Modify Password process
+
+ACCOUNT, PASSWORD = range(2)
+
 
 def modify_password(bot, update):
     query = update.callback_query
@@ -138,25 +147,85 @@ def modify_password(bot, update):
 
 
 def modify_account_password(bot, update, user_data):
-    query = update.callback_query
-
     user_data['username'] = update.message.text
 
-    query.message.reply_text('Now type your new password:')
+    update.message.reply_text('Now type your new password:')
 
     return PASSWORD
 
+
 def modify_password_password(bot, update, user_data):
-    pass
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_account_of_user(user, user_data['username'])
+    account.password = update.message.text
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Password modified successfully!')
+
+    return ConversationHandler.END
+
+
+# Modify Refresh_Time process
+
+ACCOUNT, REFRESH_TIME = range(2)
 
 
 def modify_refresh_time(bot, update):
-    pass
+    query = update.callback_query
+
+    query.message.reply_text('Okay. Type the email address of the account you want to modify your refresh_time:')
+
+    return ACCOUNT
 
 
 def modify_account_refresh_time(bot, update, user_data):
-    pass
+    user_data['username'] = update.message.text
+
+    update.message.reply_text('Now type your new refresh_time:')
+
+    return REFRESH_TIME
 
 
 def modify_refresh_time_refresh_time(bot, update, user_data):
-    pass
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_account_of_user(user, user_data['username'])
+    account.refresh_time = int(update.message.text)
+    db.update_account_of_user(user, account)
+
+    update.message.reply_text('Refresh Time modified successfully!')
+
+    return ConversationHandler.END
+
+# Remove Account process
+
+ACCOUNT = range(1)
+
+
+def remove_account(bot, update):
+    query = update.callback_query
+
+    query.message.reply_text('Type the email address of the account you want to remove:')
+
+    return ACCOUNT
+
+
+def remove_account_account(bot, update):
+    db = DBC()
+    user = db.search_user(str(update.message.chat_id))
+    account = db.get_account_of_user(user, update.message.text)
+    db.remove_account_of_user(user, account)
+
+    update.message.reply_text('Account removed successfully!')
+
+    return ConversationHandler.END
+
+# Cancel Option
+
+def cancel(bot, update):
+    user = update.message.from_user
+    logging.info("User %s canceled the conversation." % user.first_name)
+    update.message.reply_text('Operation cancelled, you have stopped the Account process.')
+
+    return ConversationHandler.END

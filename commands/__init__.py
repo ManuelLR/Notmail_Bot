@@ -23,7 +23,8 @@ from commands.email import view_email, view_detailed_email, mark_read_email, mar
 from commands.account import account_options, account_servers, add_gmail_account, add_outlook_account,\
     add_other_account, add_gmail_username_account, add_password_account, add_refresh_time_account, \
     cancel, modify_account, modify_password, modify_account_password, modify_password_password, \
-    modify_refresh_time, modify_account_refresh_time, modify_refresh_time_refresh_time
+    modify_refresh_time, modify_account_refresh_time, modify_refresh_time_refresh_time, remove_account,\
+    remove_account_account
 
 
 def load_dispatcher(dispatcher):
@@ -105,5 +106,22 @@ def load_dispatcher(dispatcher):
     )
 
     dispatcher.add_handler(conv_modify_refresth_time)
+
+    dispatcher.add_error_handler(error)
+
+    # REMOVE ACCOUNT
+    ACCOUNT = range(1)
+
+    conv_remove_account = ConversationHandler(
+        entry_points=[CallbackQueryHandler(remove_account, pattern="(\/account\/remove)")],
+
+        states={
+            ACCOUNT: [RegexHandler('^.*?@.*?\..*$', remove_account_account)]
+        },
+
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    dispatcher.add_handler(conv_remove_account)
 
     dispatcher.add_error_handler(error)

@@ -5,11 +5,9 @@ services:
     build: .
     restart: always
     volumes:
-      #- type: bind
-        #source: ./config
-        #target: /usr/src/bot/config
-      - type: bind
-        source: ./static
-        target: /opt/app/static
+      - notmail-config:/usr/src/bot/my-config
     env_file:
       - .env
+
+volumes:
+  notmail-config:

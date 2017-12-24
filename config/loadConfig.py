@@ -42,7 +42,7 @@ class Config:
         self.__set_telegram_admin_username(os.getenv('TELEGRAM_ADMIN_USERNAME', ""))
 
         # ========  Database
-        self.__set_db_path(os.getenv('TMAIL_DB_PATH', os.path.join("config", "notmail_bot.json")))
+        self.__set_db_path(os.getenv('TMAIL_DB_PATH', os.path.join("my-config", "notmail_bot-db.json")))
 
         # ========  Email
         self.__set_default_refresh_inbox(os.getenv('TMAIL_DEFAULT_REFRESH_TIME', 4 * 60))  # 4 minutos

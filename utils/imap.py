@@ -97,7 +97,8 @@ class Message:
         if not is_html:
             text_decode = part_msg.get_payload(decode=True).decode(encoding=encode)
         else:
-            soup = BeautifulSoup(part_msg.get_payload(decode=True).decode(encoding=encode))
+            text = re.sub(" ?\r?\n\<\/", "</", part_msg.get_payload(decode=True).decode(encoding=encode))
+            soup = BeautifulSoup(text)
             for script in soup(["script", "style"]):
                 script.extract()
             text_decode = soup.get_text()

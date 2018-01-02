@@ -76,6 +76,7 @@ def init(config_path, token, admin_user_id, admin_username, db_path, refresh_inb
     # Run the bot until the user presses Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT
     updater.idle()
+    logging.error("Bye !")
 
 
 if __name__ == '__main__':

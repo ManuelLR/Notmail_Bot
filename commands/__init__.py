@@ -52,76 +52,52 @@ def load_dispatcher(dispatcher):
 
     # ADD GMAIL ACCOUNT
     ACCOUNT, PASSWORD, REFRESH_TIME = range(3)
-
     conv_gmail_handler = ConversationHandler(
         entry_points=[CallbackQueryHandler(add_gmail_account, pattern="(\/account\/add\/servers\/gmail)")],
-
         states={
             ACCOUNT: [RegexHandler('^.*?@.*?\..*$', add_gmail_username_account, pass_user_data=True)],
-
             PASSWORD: [MessageHandler(Filters.text, add_password_account, pass_user_data=True)],
-
             REFRESH_TIME: [MessageHandler(Filters.text, add_refresh_time_account, pass_user_data=True)]
         },
-
         fallbacks=[CommandHandler('cancel', cancel)]
     )
-
     dispatcher.add_handler(conv_gmail_handler)
-
     dispatcher.add_error_handler(error)
 
     # MODIFY PASSWORD
     ACCOUNT, PASSWORD = range(2)
-
     conv_modify_password = ConversationHandler(
         entry_points=[CallbackQueryHandler(modify_password, pattern="(\/account\/modify\/password)")],
-
         states={
             ACCOUNT: [RegexHandler('^.*?@.*?\..*$', modify_account_password, pass_user_data=True)],
-
             PASSWORD: [MessageHandler(Filters.text, modify_password_password, pass_user_data=True)]
         },
-
         fallbacks=[CommandHandler('cancel', cancel)]
     )
-
     dispatcher.add_handler(conv_modify_password)
-
     dispatcher.add_error_handler(error)
 
     # MODIFY REFRESH_TIME
     ACCOUNT, REFRESH_TIME = range(2)
-
     conv_modify_refresth_time = ConversationHandler(
         entry_points=[CallbackQueryHandler(modify_refresh_time, pattern="(\/account\/modify\/refresh_time)")],
-
         states={
             ACCOUNT: [RegexHandler('^.*?@.*?\..*$', modify_account_refresh_time, pass_user_data=True)],
-
             REFRESH_TIME: [MessageHandler(Filters.text, modify_refresh_time_refresh_time, pass_user_data=True)]
         },
-
         fallbacks=[CommandHandler('cancel', cancel)]
     )
-
     dispatcher.add_handler(conv_modify_refresth_time)
-
     dispatcher.add_error_handler(error)
 
     # REMOVE ACCOUNT
     ACCOUNT = range(1)
-
     conv_remove_account = ConversationHandler(
         entry_points=[CallbackQueryHandler(remove_account, pattern="(\/account\/remove)")],
-
         states={
             ACCOUNT: [RegexHandler('^.*?@.*?\..*$', remove_account_account)]
         },
-
         fallbacks=[CommandHandler('cancel', cancel)]
     )
-
     dispatcher.add_handler(conv_remove_account)
-
     dispatcher.add_error_handler(error)

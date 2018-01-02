@@ -53,7 +53,7 @@ sudo docker build -t notmail_bot .
 sudo docker run -d --name Notmail_bot \
     --restart always \
     --env-file .env \
-    notmail_bot
+    manuellr/notmail_bot
 ```
 
 

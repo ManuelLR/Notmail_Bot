@@ -69,9 +69,9 @@ def load_main_view(msg, back=None):
                     read_button,
                     InlineKeyboardButton(emojis["archive"], callback_data='/email/archive'+common_sufix),
                     InlineKeyboardButton(emojis["label"], callback_data='/email/label_l/0' + common_sufix),
-                    InlineKeyboardButton(emojis["remember"], callback_data='/email/remember'+common_sufix),
-                    InlineKeyboardButton(emojis["link"], callback_data='/email/link' + common_sufix),
-                    InlineKeyboardButton(emojis["reply"], callback_data='/email/reply' + common_sufix),
+                    # InlineKeyboardButton(emojis["remember"], callback_data='/email/remember'+common_sufix),
+                    # InlineKeyboardButton(emojis["link"], callback_data='/email/link' + common_sufix),
+                    # InlineKeyboardButton(emojis["reply"], callback_data='/email/reply' + common_sufix),
                     InlineKeyboardButton(emojis["help"], callback_data='/email/help'),
 
             # ], [

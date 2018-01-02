@@ -139,7 +139,7 @@ def label_list_email(bot, update):
         msg_uid = bytes(data[2], 'utf-8')
         page = data[0]
         folder = data[3]
-        folders = get_email_server(user_email).get_folders()
+        # folders = get_email_server(user_email).get_folders()
 
         common_sufix = '/' + user_email + '/' + msg_uid.decode() + '/' + folder
 
@@ -148,23 +148,23 @@ def label_list_email(bot, update):
         header.append(InlineKeyboardButton(emojis["back"], callback_data='/email/back' + common_sufix))
         print(int(page))
 
-        if int(page) > 0:  # Need previous page button
-            header.append(InlineKeyboardButton(emojis["previous_page"], callback_data='/email/label_l/' +
-                                                                                      str(int(page)-1) + common_sufix))
+        # if int(page) > 0:  # Need previous page button
+        #     header.append(InlineKeyboardButton(emojis["previous_page"], callback_data='/email/label_l/' +
+        #                                                                               str(int(page)-1) + common_sufix))
         header.append(InlineKeyboardButton(emojis["archive"], callback_data='/email/archive' + common_sufix))
         header.append(InlineKeyboardButton(emojis["delete"], callback_data='/email/delete'+common_sufix))
-        header.append(InlineKeyboardButton(emojis["link"], callback_data='/email/link' + common_sufix))
+        # header.append(InlineKeyboardButton(emojis["link"], callback_data='/email/link' + common_sufix))
 
-        if (len(folders) - (int(page) + 1) * folders_by_page) > 0:  # Need next page button
-            header.append(InlineKeyboardButton(emojis["next_page"], callback_data='/email/label_l/' +
-                                                                                  str(int(page)+1) + common_sufix))
+        # if (len(folders) - (int(page) + 1) * folders_by_page) > 0:  # Need next page button
+        #     header.append(InlineKeyboardButton(emojis["next_page"], callback_data='/email/label_l/' +
+        #                                                                           str(int(page)+1) + common_sufix))
         body = [header]
-        for a in range(0, int(folders_by_page/2)):
-            n = a * 2 + (int(page) * folders_by_page)
-            body.append([
-                InlineKeyboardButton(folders[n].name, callback_data='/email/label' + common_sufix),
-                InlineKeyboardButton(folders[n+1].name, callback_data='/email/label' + common_sufix),
-                         ])
+        # for a in range(0, int(folders_by_page/2)):
+        #     n = a * 2 + (int(page) * folders_by_page)
+        #     body.append([
+        #         InlineKeyboardButton(folders[n].name, callback_data='/email/label' + common_sufix),
+        #         InlineKeyboardButton(folders[n+1].name, callback_data='/email/label' + common_sufix),
+        #                  ])
 
         response, reply_markup = load_main_view(get_email_server(user_email).get_email_by_uid(folder, msg_uid))
         bot.edit_message_text(parse_mode="Markdown",
@@ -207,11 +207,11 @@ def delete_email(bot, update):
 def help_email(bot, update):
     text = emojis["back"] + " previous content\n"
     text += emojis["help"] + " show this menu\n"
-    text += emojis["link"] + " link to web email\n"
+    # text += emojis["link"] + " link to web email\n"
     text += emojis["details"] + " show additionals details\n"
     text += emojis["archive"] + " archive the message\n"
-    text += emojis["reply"] + " reply to the message\n"
-    text += emojis["remember"] + " remember in the future\n"
+    # text += emojis["reply"] + " reply to the message\n"
+    # text += emojis["remember"] + " remember in the future\n"
     text += emojis["label"] + " manage labels\n"
     text += emojis["mark_as_unread"] + "/" + emojis["mark_as_read"] + " mark as unread/read\n"
     bot.send_message(chat_id=update.effective_chat.id, parse_mode="Markdown",

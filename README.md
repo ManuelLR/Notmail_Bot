@@ -1,7 +1,7 @@
-**_WORK IN PROGRESS_**
-
 # Notmail Bot
 > Telegram bot that acts as an email client.
+
+**V.0.1.0**
 
 # Usage Preview
 _Work in progress_

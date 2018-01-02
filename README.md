@@ -60,7 +60,7 @@ sudo docker run -d --name Notmail_bot \
 ### Python
 ```bash
 pip install -r requirements.txt
-python notmail_bot.py --config_path config/my_config.ini
+python notmail_bot.py --config_path my-config/my_config.ini
 ```
 
 

@@ -45,7 +45,7 @@ class Config:
         self.__set_db_path(os.getenv('TMAIL_DB_PATH', os.path.join("my-config", "notmail_bot-db.json")))
 
         # ========  Email
-        self.__set_default_refresh_inbox(os.getenv('TMAIL_DEFAULT_REFRESH_TIME', 4 * 60))  # 4 minutos
+        self.__set_default_refresh_inbox(os.getenv('TMAIL_DEFAULT_REFRESH_TIME', 3 * 60))  # 3 minutos
 
         # ========  Log
         self.__set_log_level(os.getenv('TMAIL_LOG_LEVEL', "INFO"))

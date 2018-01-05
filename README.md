@@ -1,6 +1,8 @@
 **_WORK IN PROGRESS_**
 
 # Notmail Bot
+<img src="./img/notmail_bot.png" width="160px">
+
 > Telegram bot that acts as an email client.
 
 # Usage Preview
@@ -66,7 +68,7 @@ python notmail_bot.py --config_path config/my_config.ini
 
 # License
 - The main code is licensed under [GPLv3](./LICENSE)
-- The logo of Notmail is licensed under [Free Art License v1.3](./img/notmailbotLogoLicense.txt)
+- The logo of Notmail is licensed under [Free Art License v1.3](./img/notmail_bot_license.txt)
 
 You can consult the contributors in the [AUTHORS file](./AUTHORS) or see the contributors of a specific file executing the next script:
 ```bash
